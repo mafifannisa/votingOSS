@@ -15,6 +15,9 @@ $isVoter = Session::has('voter_id');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= Security::escape($pageTitle ?? 'E-Voting OSIS') ?></title>
+    <!-- Favicon OSIS -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/Logo_OSIS.svg">
+    <link rel="alternate icon" href="/assets/images/Logo_OSIS.svg">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -28,7 +31,7 @@ $isVoter = Session::has('voter_id');
     <nav class="navbar navbar-expand-lg navbar-paper py-3 sticky-top">
         <div class="container">
             <a class="navbar-brand navbar-brand-paper" href="/">
-                <i class="bi bi-box-seam-fill text-primary"></i>
+                <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" class="navbar-logo me-2" style="height: 38px; width: auto; object-fit: contain;">
                 <span>E-VOTING OSIS</span>
             </a>
             
@@ -92,26 +95,30 @@ $isVoter = Session::has('voter_id');
 
     <!-- Main Container -->
     <main class="container my-4 flex-grow-1">
-        <!-- Flash Messages -->
-        <?php if ($flashSuccess): ?>
-            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> <?= Security::escape($flashSuccess) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($flashError): ?>
-            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= Security::escape($flashError) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($flashInfo): ?>
-            <div class="alert alert-info alert-dismissible fade show border-0 shadow-sm" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> <?= Security::escape($flashInfo) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+        <!-- Flash Messages untuk SweetAlert2 -->
+        <?php if ($flashSuccess || $flashError || $flashInfo): ?>
+            <div id="flashData" class="d-none"
+                data-success="<?= Security::escape($flashSuccess ?? '') ?>"
+                data-error="<?= Security::escape($flashError ?? '') ?>"
+                data-info="<?= Security::escape($flashInfo ?? '') ?>"
+            ></div>
+            <noscript>
+                <?php if ($flashSuccess): ?>
+                    <div class="alert alert-success border-0 shadow-sm mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i> <?= Security::escape($flashSuccess) ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($flashError): ?>
+                    <div class="alert alert-danger border-0 shadow-sm mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= Security::escape($flashError) ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($flashInfo): ?>
+                    <div class="alert alert-info border-0 shadow-sm mb-3">
+                        <i class="bi bi-info-circle-fill me-2"></i> <?= Security::escape($flashInfo) ?>
+                    </div>
+                <?php endif; ?>
+            </noscript>
         <?php endif; ?>
 
         <!-- Dynamic Content -->
@@ -120,11 +127,14 @@ $isVoter = Session::has('voter_id');
 
     <!-- Footer -->
     <footer class="py-3 text-center text-muted border-top bg-white mt-auto">
-        <div class="container small">
+        <div class="container small d-flex align-items-center justify-content-center gap-2">
+            <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 22px; width: auto; object-fit: contain; vertical-align: middle;">
             <span>&copy; <?= date('Y') ?> Pemilihan Ketua OSIS &bull; Sistem E-Voting Paper Card</span>
         </div>
     </footer>
 
+    <!-- SweetAlert2 (Local offline support with CDN fallback) -->
+    <script src="/assets/js/sweetalert2.all.min.js"></script>
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/app.js"></script>

@@ -6,8 +6,8 @@ use App\Core\Security;
     <div class="col-md-7 col-lg-5">
         <div class="paper-card shadow-sm p-4 p-md-5">
             <div class="text-center mb-4">
-                <div class="d-inline-flex p-3 rounded-circle bg-light border mb-3">
-                    <i class="bi bi-person-badge-fill text-primary" style="font-size: 2.3rem;"></i>
+                <div class="mb-3">
+                    <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 84px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));">
                 </div>
                 <h3 class="fw-bold mb-1">Masuk Pemilih</h3>
                 <p class="text-muted small">Pemilihan Ketua & Wakil Ketua OSIS Periode 2026/2027</p>
@@ -275,6 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
             stopScanner();
             scanStatusMsg.className = 'alert alert-danger border small text-center mb-3';
             scanStatusMsg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Kamera tidak dapat diaktifkan: ' + (err.message || 'Izin kamera ditolak') + '. Silakan gunakan opsi <strong>Ketik NISN</strong>.';
+            if (window.PaperToast) {
+                window.PaperToast.fire({
+                    icon: 'warning',
+                    title: 'Kamera tidak dapat diakses. Silakan gunakan opsi Ketik NISN.'
+                });
+            }
         }
     }
 
@@ -302,6 +308,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!nisnVal || nisnVal.length < 8) {
             scanStatusMsg.className = 'alert alert-warning border small text-center mb-3';
             scanStatusMsg.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Barcode terbaca: "${decodedText}", namun tidak ditemukan format NISN yang valid.`;
+            if (window.PaperToast) {
+                window.PaperToast.fire({
+                    icon: 'warning',
+                    title: 'Format barcode tidak valid sebagai NISN.'
+                });
+            }
             return;
         }
 

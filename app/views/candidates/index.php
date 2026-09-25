@@ -64,7 +64,11 @@ use App\Core\Security;
                         <a href="/admin/candidates/edit/<?= (int)$cand['id'] ?>" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil me-1"></i> Edit
                         </a>
-                        <form action="/admin/candidates/delete/<?= (int)$cand['id'] ?>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus paslon ini? Semua suara untuk paslon ini juga akan terhapus.');">
+                        <form action="/admin/candidates/delete/<?= (int)$cand['id'] ?>" method="POST"
+                              data-confirm="Apakah Anda yakin ingin menghapus paslon 0<?= Security::escape($cand['nomor_urut']) ?> (<?= Security::escape($cand['nama_ketua']) ?>)? Semua perolehan suara untuk paslon ini juga akan terhapus."
+                              data-confirm-title="Hapus Pasangan Calon?"
+                              data-confirm-btn="Ya, Hapus Paslon"
+                              data-confirm-danger="true">
                             <?= Security::csrfField() ?>
                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-trash me-1"></i> Hapus

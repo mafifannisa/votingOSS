@@ -102,9 +102,13 @@ use App\Core\Security;
                                 <a href="/admin/voters/edit/<?= (int)$v['id'] ?>" class="btn btn-sm btn-outline-secondary me-1">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form action="/admin/voters/delete/<?= (int)$v['id'] ?>" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data pemilih ini?');">
+                                <form action="/admin/voters/delete/<?= (int)$v['id'] ?>" method="POST" class="d-inline"
+                                      data-confirm="Apakah Anda yakin ingin menghapus data pemilih <?= Security::escape($v['nama']) ?> (<?= Security::escape($v['kelas']) ?>)?"
+                                      data-confirm-title="Hapus Data Pemilih?"
+                                      data-confirm-btn="Ya, Hapus"
+                                      data-confirm-danger="true">
                                     <?= Security::csrfField() ?>
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Pemilih">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>

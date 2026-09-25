@@ -3,9 +3,12 @@ use App\Core\Security;
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <div>
-        <h2 class="fw-bold mb-1">Dashboard Panitia</h2>
-        <p class="text-muted mb-0"><?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua OSIS') ?></p>
+    <div class="d-flex align-items-center gap-3">
+        <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 52px; width: auto; object-fit: contain;">
+        <div>
+            <h2 class="fw-bold mb-1">Dashboard Panitia</h2>
+            <p class="text-muted mb-0"><?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua OSIS') ?></p>
+        </div>
     </div>
     <div>
         <a href="/admin/results" class="btn btn-warning fw-bold px-4 py-2 shadow-sm">

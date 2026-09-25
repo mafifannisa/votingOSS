@@ -29,8 +29,8 @@ use App\Core\Security;
             <div class="row justify-content-center py-4">
                 <div class="col-md-6 col-lg-5">
                     <div class="paper-card p-4 p-md-5 text-center shadow-sm">
-                        <div class="d-inline-flex p-3 rounded-circle bg-warning-subtle text-warning border mb-3">
-                            <i class="bi bi-shield-lock-fill" style="font-size: 2.5rem;"></i>
+                        <div class="mb-3">
+                            <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 75px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));">
                         </div>
                         <h4 class="fw-bold mb-2">Akses Terkunci</h4>
                         <p class="text-muted small mb-4">
@@ -96,6 +96,9 @@ use App\Core\Security;
             <!-- 2. Bagian Hasil Akhir (Awalnya Disembunyikan) -->
             <div id="resultsContainer" style="display: none;">
                 <div class="alert alert-success border-0 shadow-sm p-4 text-center mb-4">
+                    <div class="mb-2">
+                        <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 64px; width: auto; object-fit: contain;">
+                    </div>
                     <h3 class="fw-bold mb-1"><i class="bi bi-check-circle-fill me-2"></i> HASIL AKHIR REKAPITULASI RESMI</h3>
                     <p class="mb-0 text-muted">Pemilihan Ketua & Wakil Ketua OSIS Periode 2026/2027</p>
                 </div>
@@ -184,7 +187,11 @@ use App\Core\Security;
                     const data = await response.json();
 
                     if (!data.success) {
-                        alert(data.error || 'Gagal memuat data hasil.');
+                        if (window.PaperAlert) {
+                            window.PaperAlert.error(data.error || 'Gagal memuat data hasil.', 'Gagal Memuat Hasil');
+                        } else {
+                            alert(data.error || 'Gagal memuat data hasil.');
+                        }
                         return;
                     }
 
@@ -242,6 +249,9 @@ use App\Core\Security;
 
                 } catch (e) {
                     console.error('Error fetching results:', e);
+                    if (window.PaperAlert) {
+                        window.PaperAlert.error('Terjadi gangguan jaringan saat mengambil data hasil pemilihan dari server.', 'Koneksi Terputus');
+                    }
                 }
             }
 

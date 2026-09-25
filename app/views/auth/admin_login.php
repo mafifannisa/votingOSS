@@ -6,8 +6,8 @@ use App\Core\Security;
     <div class="col-md-5 col-lg-4">
         <div class="paper-card shadow-sm p-4 p-md-5">
             <div class="text-center mb-4">
-                <div class="d-inline-flex p-3 rounded-circle bg-light border mb-3">
-                    <i class="bi bi-shield-lock-fill text-primary" style="font-size: 2.2rem;"></i>
+                <div class="mb-3">
+                    <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 80px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));">
                 </div>
                 <h3 class="fw-bold mb-1">Login Panitia</h3>
                 <p class="text-muted small">Panel Administrasi E-Voting OSIS</p>

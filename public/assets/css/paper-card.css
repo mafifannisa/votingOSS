@@ -175,6 +175,17 @@ body.bg-paper {
     gap: 0.5rem;
 }
 
+.navbar-logo {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.navbar-brand-paper:hover .navbar-logo {
+    transform: scale(1.05);
+}
+
 /* Countdown Circle */
 .countdown-box {
     background: #ffffff;
@@ -258,4 +269,176 @@ body.bg-paper {
     50% { top: 80%; opacity: 1; }
     100% { top: 20%; opacity: 0.6; }
 }
+
+/* ============================================================
+   SweetAlert2 - Paper Card Theme Customization
+   ============================================================ */
+.swal2-container {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+}
+
+.swal2-container.swal2-backdrop-show {
+    background: rgba(36, 41, 47, 0.48) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Modal Popup */
+.swal2-popup.paper-swal-popup,
+.swal2-popup {
+    background: var(--paper-card-bg, #ffffff) !important;
+    border: 1.5px solid var(--paper-card-border, #e6e2d8) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 48px rgba(45, 38, 24, 0.14), 0 4px 16px rgba(45, 38, 24, 0.08) !important;
+    padding: 1.75rem !important;
+    color: var(--paper-text-main, #24292f) !important;
+}
+
+/* Modal Title */
+.swal2-title.paper-swal-title,
+.swal2-title {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 1.35rem !important;
+    color: var(--paper-text-main, #24292f) !important;
+    padding: 0.5rem 1rem 0 !important;
+}
+
+/* Modal Body / HTML */
+.swal2-html-container.paper-swal-html,
+.swal2-html-container {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    font-size: 0.95rem !important;
+    color: var(--paper-text-muted, #656d76) !important;
+    line-height: 1.6 !important;
+    margin: 0.75rem 0 0 !important;
+}
+
+/* Action Buttons Container */
+.swal2-actions {
+    margin-top: 1.5rem !important;
+    gap: 0.65rem !important;
+}
+
+/* Buttons */
+.swal2-styled.swal2-confirm,
+.swal2-actions .btn-paper-primary {
+    background-color: var(--paper-accent-primary, #1e3a8a) !important;
+    border: 1px solid var(--paper-accent-primary, #1e3a8a) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    border-radius: 10px !important;
+    padding: 0.65rem 1.5rem !important;
+    box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25) !important;
+    transition: all 0.2s ease !important;
+}
+
+.swal2-styled.swal2-confirm:hover,
+.swal2-actions .btn-paper-primary:hover {
+    background-color: var(--paper-accent-primary-hover, #172554) !important;
+    border-color: var(--paper-accent-primary-hover, #172554) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.35) !important;
+}
+
+/* Danger Confirm Button Variant */
+.swal2-confirm.paper-btn-danger,
+.paper-btn-danger {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25) !important;
+}
+
+.swal2-confirm.paper-btn-danger:hover,
+.paper-btn-danger:hover {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35) !important;
+}
+
+/* Cancel Button */
+.swal2-styled.swal2-cancel,
+.swal2-actions .btn-paper-secondary {
+    background-color: #f3f0e6 !important;
+    border: 1px solid var(--paper-card-border, #e6e2d8) !important;
+    color: var(--paper-text-main, #24292f) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    border-radius: 10px !important;
+    padding: 0.65rem 1.5rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.swal2-styled.swal2-cancel:hover,
+.swal2-actions .btn-paper-secondary:hover {
+    background-color: #e9e4d5 !important;
+    color: var(--paper-text-main, #24292f) !important;
+}
+
+/* Icons */
+.swal2-icon.swal2-success {
+    border-color: var(--paper-accent-secondary, #0d9488) !important;
+    color: var(--paper-accent-secondary, #0d9488) !important;
+}
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: var(--paper-accent-secondary, #0d9488) !important;
+}
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(13, 148, 136, 0.3) !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: var(--paper-accent-warm, #d97706) !important;
+    color: var(--paper-accent-warm, #d97706) !important;
+}
+
+.swal2-icon.swal2-error {
+    border-color: #dc2626 !important;
+    color: #dc2626 !important;
+}
+.swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+    background-color: #dc2626 !important;
+}
+
+.swal2-icon.swal2-info {
+    border-color: var(--paper-accent-primary, #1e3a8a) !important;
+    color: var(--paper-accent-primary, #1e3a8a) !important;
+}
+
+.swal2-icon.swal2-question {
+    border-color: var(--paper-accent-primary, #1e3a8a) !important;
+    color: var(--paper-accent-primary, #1e3a8a) !important;
+}
+
+/* Toast Theme */
+.swal2-popup.swal2-toast {
+    background: #ffffff !important;
+    border: 1px solid var(--paper-card-border, #e6e2d8) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 28px rgba(45, 38, 24, 0.12), 0 2px 8px rgba(45, 38, 24, 0.06) !important;
+    padding: 0.75rem 1.15rem !important;
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    color: var(--paper-text-main, #24292f) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.swal2-popup.swal2-toast .swal2-timer-progress-bar {
+    background: var(--paper-accent-primary, #1e3a8a) !important;
+}
+
+/* Callout inside SweetAlert modal */
+.paper-swal-alert-warning {
+    background-color: #fffbeb;
+    border: 1px solid #fef3c7;
+    color: #92400e;
+    border-radius: 10px;
+}
+
 

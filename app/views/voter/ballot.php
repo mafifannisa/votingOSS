@@ -3,11 +3,14 @@ use App\Core\Security;
 ?>
 
 <div class="row mb-4 align-items-center">
-    <div class="col-md-8">
-        <h2 class="fw-bold mb-1">Surat Suara Digital</h2>
-        <p class="text-muted mb-0">
-            Tentukan pilihan Anda dengan cermat. Klik tombol <strong>PILIH PASLON</strong> untuk memberikan suara.
-        </p>
+    <div class="col-md-8 d-flex align-items-center gap-3">
+        <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 58px; width: auto; object-fit: contain;" class="d-none d-sm-block">
+        <div>
+            <h2 class="fw-bold mb-1">Surat Suara Digital</h2>
+            <p class="text-muted mb-0">
+                Tentukan pilihan Anda dengan cermat. Klik tombol <strong>PILIH PASLON</strong> untuk memberikan suara.
+            </p>
+        </div>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <div class="p-2 px-3 bg-white border rounded-pill d-inline-block shadow-sm">
@@ -85,9 +88,7 @@ use App\Core\Security;
                         <div class="mt-auto pt-2">
                             <button 
                                 type="button" 
-                                class="btn btn-paper-vote w-100 py-3" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#confirmVoteModal"
+                                class="btn btn-paper-vote w-100 py-3 btn-vote-action" 
                                 data-candidate-id="<?= (int)$cand['id'] ?>"
                                 data-candidate-number="0<?= Security::escape($cand['nomor_urut']) ?>"
                                 data-candidate-names="<?= Security::escape($cand['nama_ketua'] . ' & ' . $cand['nama_wakil']) ?>"
@@ -102,54 +103,59 @@ use App\Core\Security;
     </div>
 <?php endif; ?>
 
-<!-- Modal Konfirmasi Pilihan -->
-<div class="modal fade" id="confirmVoteModal" tabindex="-1" aria-labelledby="confirmVoteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content paper-card p-3 border-0">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="confirmVoteModalLabel">
-                    <i class="bi bi-question-circle text-primary me-2"></i> Konfirmasi Pilihan Anda
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Batal"></button>
-            </div>
-            <div class="modal-body py-4 text-center">
-                <p class="text-muted mb-2">Apakah Anda yakin ingin memberikan suara kepada:</p>
-                <div class="display-6 fw-bold text-primary mb-1" id="modalCandNum">01</div>
-                <h5 class="fw-bold text-dark mb-3" id="modalCandNames">Nama Pasangan Calon</h5>
-                <div class="alert alert-warning border-0 small mb-0">
-                    <i class="bi bi-exclamation-triangle me-1"></i> Pilihan Anda tidak dapat diubah setelah Anda menekan tombol konfirmasi.
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0 d-flex justify-content-between">
-                <button type="button" class="btn btn-paper-secondary px-4" data-bs-dismiss="modal">
-                    Batal / Periksa Kembali
-                </button>
-                <form action="/vote/submit" method="POST" id="voteForm">
-                    <?= Security::csrfField() ?>
-                    <input type="hidden" name="candidate_id" id="modalCandidateId" value="">
-                    <button type="submit" class="btn btn-paper-vote px-4">
-                        <i class="bi bi-check-lg me-1"></i> Ya, Saya Yakin
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Form Submit Suara Pemilih -->
+<form action="/vote/submit" method="POST" id="voteForm" class="d-none">
+    <?= Security::csrfField() ?>
+    <input type="hidden" name="candidate_id" id="modalCandidateId" value="">
+</form>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const confirmModal = document.getElementById('confirmVoteModal');
-    if (confirmModal) {
-        confirmModal.addEventListener('show.bs.modal', (event) => {
-            const button = event.relatedTarget;
-            const candidateId = button.getAttribute('data-candidate-id');
-            const candidateNumber = button.getAttribute('data-candidate-number');
-            const candidateNames = button.getAttribute('data-candidate-names');
+    document.querySelectorAll('.btn-vote-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const candidateId = btn.getAttribute('data-candidate-id');
+            const candidateNumber = btn.getAttribute('data-candidate-number');
+            const candidateNames = btn.getAttribute('data-candidate-names');
 
-            document.getElementById('modalCandidateId').value = candidateId;
-            document.getElementById('modalCandNum').textContent = 'PASLON ' + candidateNumber;
-            document.getElementById('modalCandNames').textContent = candidateNames;
+            if (window.SwalPaper) {
+                window.SwalPaper.fire({
+                    title: 'Konfirmasi Pilihan Anda',
+                    html: `
+                        <div class="py-2 text-center">
+                            <p class="text-muted mb-3">Apakah Anda yakin ingin memberikan suara kepada:</p>
+                            <div class="paslon-badge mb-3 mx-auto" style="width: 58px; height: 58px; font-size: 1.5rem;">
+                                ${candidateNumber}
+                            </div>
+                            <h4 class="fw-bold text-dark mb-3">${candidateNames}</h4>
+                            <div class="paper-swal-alert-warning p-3 rounded small text-start border">
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                                <strong>PENTING:</strong> Pilihan Anda bersifat final dan <strong>tidak dapat diubah</strong> setelah Anda menekan tombol konfirmasi.
+                            </div>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="bi bi-check-lg me-1"></i> Ya, Saya Yakin',
+                    cancelButtonText: 'Batal / Periksa Kembali',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'paper-swal-popup',
+                        confirmButton: 'swal2-confirm btn-paper-vote px-4 py-2 me-2',
+                        cancelButton: 'swal2-cancel btn-paper-secondary px-4 py-2'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('modalCandidateId').value = candidateId;
+                        document.getElementById('voteForm').submit();
+                    }
+                });
+            } else {
+                if (confirm('Apakah Anda yakin ingin memberikan suara kepada Paslon ' + candidateNumber + ' (' + candidateNames + ')? Pilihan tidak dapat diubah.')) {
+                    document.getElementById('modalCandidateId').value = candidateId;
+                    document.getElementById('voteForm').submit();
+                }
+            }
         });
-    }
+    });
 });
 </script>

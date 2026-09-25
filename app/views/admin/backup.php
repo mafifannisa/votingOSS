@@ -77,7 +77,12 @@ use App\Core\Security;
                 Pilih berkas cadangan <code>.sql</code> yang sebelumnya diunduh untuk memulihkan seluruh struktur dan data database.
             </p>
 
-            <form action="/admin/backup/restore" method="POST" enctype="multipart/form-data" onsubmit="return confirm('PERINGATAN: Memulihkan database akan menimpa data yang ada saat ini dengan data cadangan. Anda yakin ingin melanjutkan?');">
+            <form action="/admin/backup/restore" method="POST" enctype="multipart/form-data"
+                  data-confirm="PERINGATAN: Memulihkan database akan menimpa data yang ada saat ini dengan data cadangan. Anda yakin ingin melanjutkan proses restore?"
+                  data-confirm-title="Pulihkan Database Sekarang?"
+                  data-confirm-btn="Ya, Pulihkan Database"
+                  data-confirm-danger="true"
+                  data-confirm-icon="warning">
                 <?= Security::csrfField() ?>
 
                 <div class="mb-3">
@@ -104,7 +109,12 @@ use App\Core\Security;
             </p>
         </div>
         <div>
-            <form action="/admin/backup/reset-votes" method="POST" onsubmit="return confirm('PERINGATAN KRITIS: Anda akan menghapus SELURUH suara yang sudah masuk dan mengembalikan status seluruh pemilih menjadi BELUM MEMILIH. Lanjutkan?');">
+            <form action="/admin/backup/reset-votes" method="POST"
+                  data-confirm="PERINGATAN KRITIS: Anda akan menghapus SELURUH suara yang sudah masuk dan mengembalikan status seluruh pemilih menjadi BELUM MEMILIH. Lanjutkan?"
+                  data-confirm-title="Kosongkan Kotak Suara?"
+                  data-confirm-btn="Ya, Kosongkan Kotak Suara"
+                  data-confirm-danger="true"
+                  data-confirm-icon="warning">
                 <?= Security::csrfField() ?>
                 <button type="submit" class="btn btn-outline-danger btn-sm px-3 py-2 fw-bold">
                     <i class="bi bi-trash3 me-1"></i> Kosongkan Kotak Suara
