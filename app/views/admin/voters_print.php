@@ -29,7 +29,7 @@ use App\Core\Security;
            ========================================================================== */
         
         :root {
-            --card-size: 61mm;
+            --card-size: 63mm;
             --card-gap: 3.5mm;
         }
 
@@ -87,7 +87,7 @@ use App\Core\Security;
             background: #ffffff;
             border: 1.5px dashed #94a3b8;
             border-radius: 6px;
-            padding: 2.8mm 3mm;
+            padding: 2.5mm 3mm 2mm 3mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -96,18 +96,17 @@ use App\Core\Security;
             position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
+            overflow: hidden;
         }
 
         /* Corner Cut Marker Indicator */
         .voter-card-square::before {
             content: "✂";
             position: absolute;
-            top: -7px;
-            right: 4px;
-            font-size: 9px;
+            top: 1px;
+            right: 3px;
+            font-size: 8px;
             color: #94a3b8;
-            background: #ffffff;
-            padding: 0 2px;
             line-height: 1;
         }
 
@@ -119,8 +118,7 @@ use App\Core\Security;
             gap: 5px;
             width: 100%;
             border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 1.5mm;
-            margin-bottom: 1mm;
+            padding-bottom: 1mm;
         }
 
         .card-header-mini img {
@@ -147,75 +145,75 @@ use App\Core\Security;
             color: #64748b;
         }
 
-        /* QR Code Container */
+        /* QR Code Container - PERBAIKAN: Sembunyikan canvas agar TIDAK double dengan img */
         .card-qr-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
             margin: auto 0;
             background: #ffffff;
-            padding: 2px;
+            padding: 1px;
         }
 
-        .card-qr-wrapper canvas,
+        .card-qr-wrapper canvas {
+            display: none !important; /* HIDE canvas element from qrcodejs */
+        }
+
         .card-qr-wrapper img {
             display: block !important;
             margin: 0 auto;
-            max-width: 88px !important;
-            max-height: 88px !important;
-            width: 88px !important;
-            height: 88px !important;
+            width: 80px !important;
+            height: 80px !important;
+            max-width: 80px !important;
+            max-height: 80px !important;
+            object-fit: contain;
         }
 
-        /* Identity Details (Di Bawah QR Code) */
+        /* Identity Details: Nama, NISN, Kelas (Didalam kotak potong) */
         .card-identity {
             width: 100%;
             border-top: 1px solid #f1f5f9;
-            padding-top: 1.2mm;
-            line-height: 1.15;
-        }
-
-        .voter-nisn-badge {
-            display: inline-block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 8pt;
-            font-weight: 700;
-            color: #0f172a;
-            background-color: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            padding: 1px 6px;
-            letter-spacing: 0.5px;
-            margin-bottom: 1.5px;
+            padding-top: 1.5mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5px;
+            line-height: 1.2;
         }
 
         .voter-name {
-            font-size: 8pt;
-            font-weight: 700;
+            font-size: 8.5pt;
+            font-weight: 800;
             color: #0f172a;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 55mm;
-            margin: 0 auto;
+            max-width: 56mm;
+            margin: 0;
         }
 
-        .voter-meta {
-            font-size: 6.5pt;
-            color: #64748b;
+        .voter-nisn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7.5pt;
+            font-weight: 700;
+            color: #1e3a8a;
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 0.5px 6px;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .voter-class {
+            font-size: 7.5pt;
             font-weight: 600;
+            color: #475569;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 55mm;
-            margin: 0 auto;
-        }
-
-        .card-footer-tip {
-            font-size: 5pt;
-            color: #94a3b8;
-            letter-spacing: 0.2px;
-            margin-top: 1px;
+            max-width: 56mm;
+            margin: 0;
         }
 
         /* ==========================================================================
@@ -366,19 +364,16 @@ use App\Core\Security;
                                     <div class="qr-target" data-nisn="<?= Security::escape($nisnVal) ?>"></div>
                                 </div>
 
-                                <!-- Identity Details Below QR Code -->
+                                <!-- Identity Details Below QR Code: Nama, NISN, Kelas (Didalam kotak potong) -->
                                 <div class="card-identity">
-                                    <div class="voter-nisn-badge">
-                                        NISN: <?= Security::escape($nisnVal) ?>
-                                    </div>
                                     <div class="voter-name" title="<?= Security::escape($voter['nama']) ?>">
                                         <?= Security::escape($voter['nama']) ?>
                                     </div>
-                                    <div class="voter-meta" title="<?= Security::escape($voter['kelas'] . ' - ' . $voter['jurusan']) ?>">
-                                        <?= Security::escape($voter['kelas']) ?> &bull; <?= Security::escape($voter['jurusan']) ?>
+                                    <div class="voter-nisn">
+                                        NISN: <?= Security::escape($nisnVal) ?>
                                     </div>
-                                    <div class="card-footer-tip">
-                                        Pindai QR saat pencoblosan suara
+                                    <div class="voter-class" title="<?= Security::escape($voter['kelas']) ?>">
+                                        Kelas <?= Security::escape($voter['kelas']) ?>
                                     </div>
                                 </div>
                             </div>
@@ -399,8 +394,8 @@ use App\Core\Security;
                     try {
                         new QRCode(el, {
                             text: nisn,
-                            width: 88,
-                            height: 88,
+                            width: 80,
+                            height: 80,
                             colorDark: "#000000",
                             colorLight: "#ffffff",
                             correctLevel: QRCode.CorrectLevel.M
