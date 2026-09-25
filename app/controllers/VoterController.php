@@ -26,7 +26,10 @@ class VoterController extends Controller
 
         $search = isset($_GET['q']) ? trim((string)$_GET['q']) : null;
         $page = max(1, (int)($_GET['page'] ?? 1));
-        $limit = 25;
+        $limit = (int)($_GET['limit'] ?? 25);
+        if (!in_array($limit, [10, 25, 50, 100], true)) {
+            $limit = 25;
+        }
         $offset = ($page - 1) * $limit;
 
         $totalRecords = $this->voterModel->countAll($search);
@@ -41,6 +44,7 @@ class VoterController extends Controller
             'voters' => $voters,
             'search' => $search,
             'page' => $page,
+            'limit' => $limit,
             'totalPages' => $totalPages,
             'totalRecords' => $totalRecords,
             'totalVoted' => $totalVoted,

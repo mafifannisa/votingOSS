@@ -532,4 +532,37 @@ body.swal2-toast-shown .swal2-container,
     border-radius: 10px;
 }
 
+/* Paper Card Pagination */
+.pagination-paper .page-link {
+    background-color: #ffffff;
+    border: 1px solid var(--paper-card-border, #e6e2d8);
+    color: var(--paper-text-main, #24292f);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.38rem 0.75rem;
+    margin: 0 2px;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+}
+
+.pagination-paper .page-link:hover {
+    background-color: #f8f6f0;
+    border-color: var(--paper-card-hover-border, #d4cebf);
+    color: var(--paper-accent-primary, #1e3a8a);
+}
+
+.pagination-paper .page-item.active .page-link {
+    background-color: var(--paper-accent-primary, #1e3a8a) !important;
+    border-color: var(--paper-accent-primary, #1e3a8a) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+}
+
+.pagination-paper .page-item.disabled .page-link {
+    background-color: #faf9f5;
+    border-color: var(--paper-card-border, #e6e2d8);
+    color: #a8a29e;
+}
+
+
 

@@ -36,10 +36,15 @@ use App\Core\Security;
     </div>
 </div>
 
+<?php
+$fromRecord = $totalRecords > 0 ? (($page - 1) * $limit) + 1 : 0;
+$toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
+?>
+
 <div class="paper-card p-4">
-    <!-- Search Form -->
-    <form action="/admin/voters" method="GET" class="row g-2 mb-4">
-        <div class="col-md-5">
+    <!-- Search and Per-Page Filter Form -->
+    <form action="/admin/voters" method="GET" class="row g-2 mb-4 align-items-center">
+        <div class="col-md-6 col-lg-5">
             <div class="input-group">
                 <input type="text" name="q" class="form-control form-control-paper" placeholder="Cari nama siswa, kelas, atau jurusan..." value="<?= Security::escape($search ?? '') ?>">
                 <button type="submit" class="btn btn-paper-secondary">
@@ -47,13 +52,22 @@ use App\Core\Security;
                 </button>
             </div>
         </div>
-        <?php if (!empty($search)): ?>
-            <div class="col-md-2">
-                <a href="/admin/voters" class="btn btn-link text-muted text-decoration-none">
+        <div class="col-md-6 col-lg-7 d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-1">
+                <span class="text-muted small">Tampilkan:</span>
+                <select name="limit" class="form-select form-select-sm form-control-paper w-auto" onchange="this.form.submit()">
+                    <option value="10" <?= $limit === 10 ? 'selected' : '' ?>>10 baris</option>
+                    <option value="25" <?= $limit === 25 ? 'selected' : '' ?>>25 baris</option>
+                    <option value="50" <?= $limit === 50 ? 'selected' : '' ?>>50 baris</option>
+                    <option value="100" <?= $limit === 100 ? 'selected' : '' ?>>100 baris</option>
+                </select>
+            </div>
+            <?php if (!empty($search)): ?>
+                <a href="/admin/voters?limit=<?= $limit ?>" class="btn btn-sm btn-link text-muted text-decoration-none">
                     <i class="bi bi-x-circle me-1"></i> Reset Pencarian
                 </a>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </form>
 
     <!-- Voters Table -->
@@ -79,7 +93,7 @@ use App\Core\Security;
                     </tr>
                 <?php else: ?>
                     <?php 
-                    $no = ($page - 1) * 25 + 1;
+                    $no = (($page - 1) * $limit) + 1;
                     foreach ($voters as $v): 
                     ?>
                         <tr>
@@ -120,35 +134,69 @@ use App\Core\Security;
         </table>
     </div>
 
-    <!-- Pagination -->
-    <?php if ($totalPages > 1): ?>
-        <nav class="mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <small class="text-muted">
-                Halaman <?= $page ?> dari <?= $totalPages ?> (Total <?= number_format($totalRecords, 0, ',', '.') ?> data)
-            </small>
-            <ul class="pagination pagination-sm mb-0">
-                <?php if ($page > 1): ?>
-                    <li class="page-item">
-                        <a class="page-link" href="/admin/voters?page=<?= $page - 1 ?><?= $search ? '&q=' . urlencode($search) : '' ?>">&laquo; Sebelumnya</a>
-                    </li>
-                <?php endif; ?>
+    <!-- Pagination & Data Summary Footer -->
+    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="text-muted small">
+            Menampilkan <strong><?= $fromRecord ?> - <?= $toRecord ?></strong> dari <strong><?= number_format($totalRecords, 0, ',', '.') ?></strong> data pemilih
+            <?php if (!empty($search)): ?>
+                <span class="badge bg-light text-dark border ms-1">Pencarian: "<?= Security::escape($search) ?>"</span>
+            <?php endif; ?>
+        </div>
 
-                <?php 
-                $startP = max(1, $page - 2);
-                $endP = min($totalPages, $page + 2);
-                for ($p = $startP; $p <= $endP; $p++): 
-                ?>
-                    <li class="page-item <?= $p === $page ? 'active' : '' ?>">
-                        <a class="page-link" href="/admin/voters?page=<?= $p ?><?= $search ? '&q=' . urlencode($search) : '' ?>"><?= $p ?></a>
-                    </li>
-                <?php endfor; ?>
+        <?php if ($totalPages > 1): ?>
+            <nav aria-label="Navigasi Halaman Data Pemilih">
+                <ul class="pagination pagination-sm pagination-paper mb-0">
+                    <?php
+                    $urlForPage = function(int $targetPage) use ($search, $limit): string {
+                        $params = ['page' => $targetPage];
+                        if (!empty($search)) $params['q'] = $search;
+                        if ($limit !== 25) $params['limit'] = $limit;
+                        return '/admin/voters?' . http_build_query($params);
+                    };
+                    ?>
 
-                <?php if ($page < $totalPages): ?>
-                    <li class="page-item">
-                        <a class="page-link" href="/admin/voters?page=<?= $page + 1 ?><?= $search ? '&q=' . urlencode($search) : '' ?>">Berikutnya &raquo;</a>
+                    <!-- Tombol Halaman Sebelumnya -->
+                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $page > 1 ? $urlForPage($page - 1) : '#' ?>" aria-label="Sebelumnya" <?= $page <= 1 ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
+                            <i class="bi bi-chevron-left me-1"></i> Sebelumnya
+                        </a>
                     </li>
-                <?php endif; ?>
-            </ul>
-        </nav>
-    <?php endif; ?>
+
+                    <!-- Nomor Halaman -->
+                    <?php 
+                    $startP = max(1, $page - 2);
+                    $endP = min($totalPages, $page + 2);
+                    if ($startP > 1) {
+                        echo '<li class="page-item"><a class="page-link" href="' . $urlForPage(1) . '">1</a></li>';
+                        if ($startP > 2) {
+                            echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                        }
+                    }
+
+                    for ($p = $startP; $p <= $endP; $p++): 
+                    ?>
+                        <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                            <a class="page-link" href="<?= $urlForPage($p) ?>"><?= $p ?></a>
+                        </li>
+                    <?php 
+                    endfor; 
+
+                    if ($endP < $totalPages) {
+                        if ($endP < $totalPages - 1) {
+                            echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                        }
+                        echo '<li class="page-item"><a class="page-link" href="' . $urlForPage($totalPages) . '">' . $totalPages . '</a></li>';
+                    }
+                    ?>
+
+                    <!-- Tombol Halaman Berikutnya -->
+                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $page < $totalPages ? $urlForPage($page + 1) : '#' ?>" aria-label="Berikutnya" <?= $page >= $totalPages ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
+                            Berikutnya <i class="bi bi-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
+    </div>
 </div>
