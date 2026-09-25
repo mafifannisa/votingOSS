@@ -72,7 +72,7 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
 
     <!-- Voters Table -->
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover table-paper align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th style="width: 50px;">No</th>
@@ -134,69 +134,80 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
         </table>
     </div>
 
-    <!-- Pagination & Data Summary Footer -->
-    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <div class="text-muted small">
-            Menampilkan <strong><?= $fromRecord ?> - <?= $toRecord ?></strong> dari <strong><?= number_format($totalRecords, 0, ',', '.') ?></strong> data pemilih
+    <!-- Pagination & Data Summary Footer Toolbar -->
+    <div class="paper-table-footer">
+        <div class="d-flex align-items-center gap-2 text-muted small flex-wrap">
+            <span class="badge bg-white text-dark border px-2 py-1 shadow-sm">
+                <i class="bi bi-people-fill text-primary me-1"></i> Data Pemilih
+            </span>
+            <span>
+                Menampilkan <strong><?= $fromRecord ?> – <?= $toRecord ?></strong> dari <strong><?= number_format($totalRecords, 0, ',', '.') ?></strong> siswa
+            </span>
             <?php if (!empty($search)): ?>
-                <span class="badge bg-light text-dark border ms-1">Pencarian: "<?= Security::escape($search) ?>"</span>
+                <span class="badge bg-white text-secondary border ms-1">Filter: "<?= Security::escape($search) ?>"</span>
             <?php endif; ?>
         </div>
 
-        <?php if ($totalPages > 1): ?>
-            <nav aria-label="Navigasi Halaman Data Pemilih">
-                <ul class="pagination pagination-sm pagination-paper mb-0">
-                    <?php
-                    $urlForPage = function(int $targetPage) use ($search, $limit): string {
-                        $params = ['page' => $targetPage];
-                        if (!empty($search)) $params['q'] = $search;
-                        if ($limit !== 25) $params['limit'] = $limit;
-                        return '/admin/voters?' . http_build_query($params);
-                    };
-                    ?>
+        <div>
+            <?php if ($totalPages > 1): ?>
+                <nav aria-label="Navigasi Halaman Data Pemilih">
+                    <ul class="pagination pagination-sm pagination-paper mb-0">
+                        <?php
+                        $urlForPage = function(int $targetPage) use ($search, $limit): string {
+                            $params = ['page' => $targetPage];
+                            if (!empty($search)) $params['q'] = $search;
+                            if ($limit !== 25) $params['limit'] = $limit;
+                            return '/admin/voters?' . http_build_query($params);
+                        };
+                        ?>
 
-                    <!-- Tombol Halaman Sebelumnya -->
-                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link" href="<?= $page > 1 ? $urlForPage($page - 1) : '#' ?>" aria-label="Sebelumnya" <?= $page <= 1 ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
-                            <i class="bi bi-chevron-left me-1"></i> Sebelumnya
-                        </a>
-                    </li>
-
-                    <!-- Nomor Halaman -->
-                    <?php 
-                    $startP = max(1, $page - 2);
-                    $endP = min($totalPages, $page + 2);
-                    if ($startP > 1) {
-                        echo '<li class="page-item"><a class="page-link" href="' . $urlForPage(1) . '">1</a></li>';
-                        if ($startP > 2) {
-                            echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                        }
-                    }
-
-                    for ($p = $startP; $p <= $endP; $p++): 
-                    ?>
-                        <li class="page-item <?= $p === $page ? 'active' : '' ?>">
-                            <a class="page-link" href="<?= $urlForPage($p) ?>"><?= $p ?></a>
+                        <!-- Tombol Halaman Sebelumnya -->
+                        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                            <a class="page-link" href="<?= $page > 1 ? $urlForPage($page - 1) : '#' ?>" aria-label="Sebelumnya" <?= $page <= 1 ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
+                                <i class="bi bi-chevron-left me-1"></i> Sebelumnya
+                            </a>
                         </li>
-                    <?php 
-                    endfor; 
 
-                    if ($endP < $totalPages) {
-                        if ($endP < $totalPages - 1) {
-                            echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                        <!-- Nomor Halaman -->
+                        <?php 
+                        $startP = max(1, $page - 2);
+                        $endP = min($totalPages, $page + 2);
+                        if ($startP > 1) {
+                            echo '<li class="page-item"><a class="page-link" href="' . $urlForPage(1) . '">1</a></li>';
+                            if ($startP > 2) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
                         }
-                        echo '<li class="page-item"><a class="page-link" href="' . $urlForPage($totalPages) . '">' . $totalPages . '</a></li>';
-                    }
-                    ?>
 
-                    <!-- Tombol Halaman Berikutnya -->
-                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                        <a class="page-link" href="<?= $page < $totalPages ? $urlForPage($page + 1) : '#' ?>" aria-label="Berikutnya" <?= $page >= $totalPages ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
-                            Berikutnya <i class="bi bi-chevron-right ms-1"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        <?php endif; ?>
+                        for ($p = $startP; $p <= $endP; $p++): 
+                        ?>
+                            <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                                <a class="page-link" href="<?= $urlForPage($p) ?>"><?= $p ?></a>
+                            </li>
+                        <?php 
+                        endfor; 
+
+                        if ($endP < $totalPages) {
+                            if ($endP < $totalPages - 1) {
+                                echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                            }
+                            echo '<li class="page-item"><a class="page-link" href="' . $urlForPage($totalPages) . '">' . $totalPages . '</a></li>';
+                        }
+                        ?>
+
+                        <!-- Tombol Halaman Berikutnya -->
+                        <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                            <a class="page-link" href="<?= $page < $totalPages ? $urlForPage($page + 1) : '#' ?>" aria-label="Berikutnya" <?= $page >= $totalPages ? 'tabindex="-1" aria-disabled="true"' : '' ?>>
+                                Berikutnya <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            <?php else: ?>
+                <span class="badge bg-white text-muted border px-2.5 py-1.5 fw-normal small shadow-sm">
+                    <i class="bi bi-check2-circle text-success me-1"></i> Halaman 1 dari 1 (Semua DPT)
+                </span>
+            <?php endif; ?>
+        </div>
     </div>
 </div>

@@ -565,6 +565,51 @@ body.swal2-toast-shown .swal2-container,
 }
 
 /* ==========================================================================
+   Paper Table & Table Footer Toolbar
+   ========================================================================== */
+.table-paper {
+    margin-bottom: 0;
+}
+
+.table-paper thead th {
+    background-color: #faf9f5;
+    border-bottom: 1.5px solid var(--paper-card-border, #e6e2d8);
+    color: var(--paper-text-main, #24292f);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.85rem 1rem;
+}
+
+.table-paper tbody td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f2eee4;
+    color: var(--paper-text-main, #24292f);
+}
+
+/* Hilangkan garis pemisah ganda pada baris terakhir tabel */
+.table-paper tbody tr:last-child > * {
+    border-bottom: 0 !important;
+}
+
+.table-paper tbody tr:hover td {
+    background-color: #fbf9f4;
+}
+
+/* Paper Table Footer Toolbar */
+.paper-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    padding: 0.75rem 1.15rem;
+    background-color: #faf9f5;
+    border: 1px solid var(--paper-card-border, #e6e2d8);
+    border-radius: 12px;
+    margin-top: 1rem;
+}
+
+/* ==========================================================================
    Paper Card Custom Select Component (PaperSelect)
    ========================================================================== */
 
