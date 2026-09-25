@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Core\Database;
 use App\Core\Model;
 use PDO;
+use PDOException;
 
 class Voter extends Model
 {
@@ -26,6 +28,19 @@ class Voter extends Model
     }
 
     public function getAll(int $limit = 50, int $offset = 0, ?string $search = null): array
+    {
+        try {
+            return $this->doGetAll($limit, $offset, $search);
+        } catch (PDOException $e) {
+            if ($this->isSchemaMismatch($e)) {
+                Database::selfHeal($this->db, true);
+                return $this->doGetAll($limit, $offset, $search);
+            }
+            throw $e;
+        }
+    }
+
+    private function doGetAll(int $limit, int $offset, ?string $search): array
     {
         if ($search) {
             $stmt = $this->db->prepare(
@@ -58,6 +73,19 @@ class Voter extends Model
 
     public function getAllForPrint(?string $kelas = null, ?string $search = null): array
     {
+        try {
+            return $this->doGetAllForPrint($kelas, $search);
+        } catch (PDOException $e) {
+            if ($this->isSchemaMismatch($e)) {
+                Database::selfHeal($this->db, true);
+                return $this->doGetAllForPrint($kelas, $search);
+            }
+            throw $e;
+        }
+    }
+
+    private function doGetAllForPrint(?string $kelas = null, ?string $search = null): array
+    {
         $sql = 'SELECT id, nisn, nama, kelas, jurusan, has_voted, created_at FROM voters WHERE 1=1';
         $params = [];
 
@@ -87,6 +115,19 @@ class Voter extends Model
 
     public function countAll(?string $search = null): int
     {
+        try {
+            return $this->doCountAll($search);
+        } catch (PDOException $e) {
+            if ($this->isSchemaMismatch($e)) {
+                Database::selfHeal($this->db, true);
+                return $this->doCountAll($search);
+            }
+            throw $e;
+        }
+    }
+
+    private function doCountAll(?string $search = null): int
+    {
         if ($search) {
             $stmt = $this->db->prepare(
                 'SELECT COUNT(*) FROM voters 
@@ -112,6 +153,19 @@ class Voter extends Model
 
     public function create(array $data): int
     {
+        try {
+            return $this->doCreate($data);
+        } catch (PDOException $e) {
+            if ($this->isSchemaMismatch($e)) {
+                Database::selfHeal($this->db, true);
+                return $this->doCreate($data);
+            }
+            throw $e;
+        }
+    }
+
+    private function doCreate(array $data): int
+    {
         $stmt = $this->db->prepare(
             'INSERT INTO voters (nisn, nisn_hash, nama, kelas, jurusan, has_voted, created_at)
              VALUES (?, ?, ?, ?, ?, 0, NOW())'
@@ -124,6 +178,17 @@ class Voter extends Model
             $data['jurusan']
         ]);
         return (int) $this->db->lastInsertId();
+    }
+
+    private function isSchemaMismatch(PDOException $e): bool
+    {
+        $code = (string)$e->getCode();
+        $msg = $e->getMessage();
+        return $code === '42S22'
+            || $code === '42S02'
+            || str_contains($msg, '1054')
+            || str_contains($msg, '1146')
+            || str_contains($msg, 'Unknown column');
     }
 
     public function update(int $id, array $data): bool

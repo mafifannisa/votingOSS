@@ -1,4 +1,5 @@
 /storage/.installed
+/storage/.db_schema_version
 /storage/logs/*.log
 /public/assets/images/candidates/*
 !/public/assets/images/candidates/.gitkeep
