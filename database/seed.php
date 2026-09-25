@@ -81,6 +81,7 @@ $sampleStudents = [
 
 foreach ($sampleStudents as $student) {
     $voterModel->create([
+        'nisn' => $student['nisn'],
         'nisn_hash' => Security::hashNisn($student['nisn']),
         'nama' => $student['nama'],
         'kelas' => $student['kelas'],

@@ -89,6 +89,7 @@ class VoterController extends Controller
         }
 
         $this->voterModel->create([
+            'nisn' => $nisn,
             'nisn_hash' => $nisnHash,
             'nama' => $nama,
             'kelas' => $kelas,
@@ -253,8 +254,8 @@ class VoterController extends Controller
 
             $pdo = Database::getConnection();
             $stmtCheck = $pdo->prepare('SELECT id FROM voters WHERE nisn_hash = ? LIMIT 1');
-            $stmtInsert = $pdo->prepare('INSERT INTO voters (nisn_hash, nama, kelas, jurusan, has_voted, created_at) VALUES (?, ?, ?, ?, 0, NOW())');
-            $stmtUpdate = $pdo->prepare('UPDATE voters SET nama = ?, kelas = ?, jurusan = ? WHERE id = ?');
+            $stmtInsert = $pdo->prepare('INSERT INTO voters (nisn, nisn_hash, nama, kelas, jurusan, has_voted, created_at) VALUES (?, ?, ?, ?, ?, 0, NOW())');
+            $stmtUpdate = $pdo->prepare('UPDATE voters SET nisn = ?, nama = ?, kelas = ?, jurusan = ? WHERE id = ?');
 
             foreach ($dataRows as $item) {
                 $nisn = $item['nisn'];
@@ -264,10 +265,10 @@ class VoterController extends Controller
                 $existing = $stmtCheck->fetch();
 
                 if ($existing) {
-                    $stmtUpdate->execute([$item['nama'], $item['kelas'], $item['jurusan'], $existing['id']]);
+                    $stmtUpdate->execute([$nisn, $item['nama'], $item['kelas'], $item['jurusan'], $existing['id']]);
                     $updated++;
                 } else {
-                    $stmtInsert->execute([$nisnHash, $item['nama'], $item['kelas'], $item['jurusan']]);
+                    $stmtInsert->execute([$nisn, $nisnHash, $item['nama'], $item['kelas'], $item['jurusan']]);
                     $inserted++;
                 }
             }
@@ -282,5 +283,27 @@ class VoterController extends Controller
             Session::setFlash('error', 'Terjadi kesalahan saat memproses data import ke database: ' . $e->getMessage());
             $this->redirect('/admin/voters/import');
         }
+    }
+
+    /**
+     * Tampilan cetak kartu pemilih DPT (Square QR Code Card)
+     */
+    public function printCards(): void
+    {
+        $this->requireAdmin();
+
+        $selectedClass = isset($_GET['kelas']) ? trim((string)$_GET['kelas']) : null;
+        $search = isset($_GET['q']) ? trim((string)$_GET['q']) : null;
+
+        $classes = $this->voterModel->getDistinctClasses();
+        $voters = $this->voterModel->getAllForPrint($selectedClass, $search);
+
+        $this->render('admin/voters_print', [
+            'pageTitle' => 'Cetak Kartu Pemilih DPT (Square) - E-Voting OSIS',
+            'voters' => $voters,
+            'classes' => $classes,
+            'selectedClass' => $selectedClass,
+            'search' => $search
+        ], null);
     }
 }

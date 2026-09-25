@@ -29,23 +29,24 @@ class Voter extends Model
     {
         if ($search) {
             $stmt = $this->db->prepare(
-                'SELECT id, nama, kelas, jurusan, has_voted, created_at 
+                'SELECT id, nisn, nama, kelas, jurusan, has_voted, created_at 
                  FROM voters 
-                 WHERE nama LIKE ? OR kelas LIKE ? OR jurusan LIKE ? 
+                 WHERE nama LIKE ? OR kelas LIKE ? OR jurusan LIKE ? OR nisn LIKE ?
                  ORDER BY id DESC LIMIT ? OFFSET ?'
             );
             $queryParam = '%' . $search . '%';
             $stmt->bindValue(1, $queryParam, PDO::PARAM_STR);
             $stmt->bindValue(2, $queryParam, PDO::PARAM_STR);
             $stmt->bindValue(3, $queryParam, PDO::PARAM_STR);
-            $stmt->bindValue(4, $limit, PDO::PARAM_INT);
-            $stmt->bindValue(5, $offset, PDO::PARAM_INT);
+            $stmt->bindValue(4, $queryParam, PDO::PARAM_STR);
+            $stmt->bindValue(5, $limit, PDO::PARAM_INT);
+            $stmt->bindValue(6, $offset, PDO::PARAM_INT);
             $stmt->execute();
             return $stmt->fetchAll();
         }
 
         $stmt = $this->db->prepare(
-            'SELECT id, nama, kelas, jurusan, has_voted, created_at 
+            'SELECT id, nisn, nama, kelas, jurusan, has_voted, created_at 
              FROM voters 
              ORDER BY id DESC LIMIT ? OFFSET ?'
         );
@@ -55,15 +56,44 @@ class Voter extends Model
         return $stmt->fetchAll();
     }
 
+    public function getAllForPrint(?string $kelas = null, ?string $search = null): array
+    {
+        $sql = 'SELECT id, nisn, nama, kelas, jurusan, has_voted, created_at FROM voters WHERE 1=1';
+        $params = [];
+
+        if (!empty($kelas)) {
+            $sql .= ' AND kelas = ?';
+            $params[] = $kelas;
+        }
+
+        if (!empty($search)) {
+            $sql .= ' AND (nama LIKE ? OR nisn LIKE ? OR jurusan LIKE ?)';
+            $p = '%' . $search . '%';
+            $params[] = $p;
+            $params[] = $p;
+            $params[] = $p;
+        }
+
+        $sql .= ' ORDER BY kelas ASC, nama ASC';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getDistinctClasses(): array
+    {
+        return $this->db->query('SELECT DISTINCT kelas FROM voters WHERE kelas IS NOT NULL AND kelas != "" ORDER BY kelas ASC')->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     public function countAll(?string $search = null): int
     {
         if ($search) {
             $stmt = $this->db->prepare(
                 'SELECT COUNT(*) FROM voters 
-                 WHERE nama LIKE ? OR kelas LIKE ? OR jurusan LIKE ?'
+                 WHERE nama LIKE ? OR kelas LIKE ? OR jurusan LIKE ? OR nisn LIKE ?'
             );
             $queryParam = '%' . $search . '%';
-            $stmt->execute([$queryParam, $queryParam, $queryParam]);
+            $stmt->execute([$queryParam, $queryParam, $queryParam, $queryParam]);
             return (int) $stmt->fetchColumn();
         }
 
@@ -83,10 +113,11 @@ class Voter extends Model
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO voters (nisn_hash, nama, kelas, jurusan, has_voted, created_at)
-             VALUES (?, ?, ?, ?, 0, NOW())'
+            'INSERT INTO voters (nisn, nisn_hash, nama, kelas, jurusan, has_voted, created_at)
+             VALUES (?, ?, ?, ?, ?, 0, NOW())'
         );
         $stmt->execute([
+            $data['nisn'] ?? null,
             $data['nisn_hash'],
             $data['nama'],
             $data['kelas'],

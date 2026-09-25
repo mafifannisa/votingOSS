@@ -7,7 +7,10 @@ use App\Core\Security;
         <h2 class="fw-bold mb-1">Daftar Pemilih Tetap (DPT)</h2>
         <p class="text-muted mb-0">Total <?= number_format($totalRecords, 0, ',', '.') ?> siswa terdaftar sebagai pemilih sah.</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="/admin/voters/print" target="_blank" class="btn btn-paper-outline-primary" title="Cetak Kartu Pemilih DPT dengan QR Code (Format Kotak / Square Siap Gunting)">
+            <i class="bi bi-printer me-1"></i> Cetak Kartu DPT
+        </a>
         <a href="/admin/voters/import" class="btn btn-paper-success">
             <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import Excel / CSV
         </a>

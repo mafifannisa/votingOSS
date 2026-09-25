@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS candidates (
 
 CREATE TABLE IF NOT EXISTS voters (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nisn VARCHAR(30) NULL,
     nisn_hash VARCHAR(128) NOT NULL UNIQUE,
     nama VARCHAR(150) NOT NULL,
     kelas VARCHAR(50) NOT NULL,
@@ -40,7 +41,8 @@ CREATE TABLE IF NOT EXISTS voters (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_has_voted (has_voted),
-    INDEX idx_nisn_hash (nisn_hash)
+    INDEX idx_nisn_hash (nisn_hash),
+    INDEX idx_nisn (nisn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS votes (
