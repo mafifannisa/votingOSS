@@ -19,7 +19,7 @@ use App\Core\Security;
                         Format yang didukung: <strong>.xlsx</strong> (Excel) dan <strong>.csv</strong>
                     </p>
                 </div>
-                <a href="/admin/voters/template" class="btn btn-sm btn-outline-primary">
+                <a href="/admin/voters/template" class="btn btn-sm btn-paper-outline-success">
                     <i class="bi bi-download me-1"></i> Unduh Contoh Template CSV
                 </a>
             </div>
@@ -44,7 +44,7 @@ use App\Core\Security;
 
                 <div class="d-flex justify-content-end gap-2">
                     <a href="/admin/voters" class="btn btn-paper-secondary">Batal</a>
-                    <button type="submit" class="btn btn-paper-primary px-4">
+                    <button type="submit" class="btn btn-paper-success px-4">
                         <i class="bi bi-cloud-arrow-up me-1"></i> Mulai Proses Import
                     </button>
                 </div>

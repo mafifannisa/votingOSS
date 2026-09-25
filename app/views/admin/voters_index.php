@@ -8,7 +8,7 @@ use App\Core\Security;
         <p class="text-muted mb-0">Total <?= number_format($totalRecords, 0, ',', '.') ?> siswa terdaftar sebagai pemilih sah.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="/admin/voters/import" class="btn btn-outline-success">
+        <a href="/admin/voters/import" class="btn btn-paper-success">
             <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import Excel / CSV
         </a>
         <a href="/admin/voters/create" class="btn btn-paper-primary">

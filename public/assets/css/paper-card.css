@@ -183,6 +183,16 @@ body.bg-paper {
     box-shadow: 0 4px 12px rgba(16, 124, 65, 0.25);
 }
 
+/* Button Sizes */
+.btn-paper-primary.btn-sm,
+.btn-paper-secondary.btn-sm,
+.btn-paper-success.btn-sm,
+.btn-paper-outline-success.btn-sm {
+    padding: 0.35rem 0.95rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+}
+
 .btn-paper-vote {
     background-color: #0f766e;
     border: none;
