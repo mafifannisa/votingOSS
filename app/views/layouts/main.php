@@ -58,8 +58,13 @@ $isVoter = Session::has('voter_id');
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link fw-semibold" href="/admin/monitoring">
+                                <i class="bi bi-broadcast me-1"></i> Pantau Suara
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link fw-semibold" href="/admin/results">
-                                <i class="bi bi-trophy me-1"></i> Hasil
+                                <i class="bi bi-trophy me-1"></i> Hasil Pleno
                             </a>
                         </li>
                         <li class="nav-item">

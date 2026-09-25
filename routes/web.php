@@ -9,6 +9,7 @@ use App\Controllers\BackupController;
 use App\Controllers\CandidateController;
 use App\Controllers\DashboardController;
 use App\Controllers\InstallController;
+use App\Controllers\MonitoringController;
 use App\Controllers\ResultController;
 use App\Controllers\VoterController;
 use App\Controllers\VotingController;
@@ -60,7 +61,11 @@ $router->get('/admin/voters/import', [VoterController::class, 'showImport']);
 $router->post('/admin/voters/import/process', [VoterController::class, 'processImport']);
 $router->get('/admin/voters/template', [VoterController::class, 'downloadTemplate']);
 
-// Hasil Pemilihan & Countdown
+// Pemantauan Suara Masuk (Live Turnout Monitor)
+$router->get('/admin/monitoring', [MonitoringController::class, 'index']);
+$router->get('/admin/monitoring/data', [MonitoringController::class, 'getData']);
+
+// Hasil Pemilihan & Countdown (Rapat Pleno)
 $router->get('/admin/results', [ResultController::class, 'index']);
 $router->post('/admin/results/unlock', [ResultController::class, 'unlock']);
 $router->post('/admin/results/lock', [ResultController::class, 'lock']);

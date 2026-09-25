@@ -869,6 +869,187 @@ select.paper-select-initialized {
     background: #b8b2a2;
 }
 
+/* ==========================================================================
+   Paper Segmented Action Group (Pill UI for Table Rows)
+   ========================================================================== */
+.paper-action-group {
+    display: inline-flex;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1.5px solid var(--paper-card-border, #e6e2d8);
+    border-radius: 9px;
+    padding: 2px;
+    box-shadow: 0 1px 3px rgba(45, 38, 24, 0.04);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    vertical-align: middle;
+}
+
+.table-paper tr:hover .paper-action-group,
+.paper-action-group:hover {
+    border-color: var(--paper-card-hover-border, #d4cebf);
+    box-shadow: 0 2px 6px rgba(45, 38, 24, 0.08);
+}
+
+.paper-action-btn {
+    width: 31px;
+    height: 29px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 0.86rem;
+    color: #64748b;
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+}
+
+.paper-action-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--paper-accent-primary, #1e3a8a);
+    z-index: 2;
+}
+
+/* Reset Button (Warm Amber) */
+.paper-action-btn-reset {
+    color: #d97706;
+}
+.paper-action-btn-reset:hover {
+    background-color: #fef3c7;
+    color: #92400e;
+    transform: scale(1.05);
+}
+
+/* Edit Button (Navy / Slate) */
+.paper-action-btn-edit {
+    color: #475569;
+}
+.paper-action-btn-edit:hover {
+    background-color: #eff6ff;
+    color: #1e3a8a;
+    transform: scale(1.05);
+}
+
+/* Delete Button (Rose / Crimson) */
+.paper-action-btn-delete {
+    color: #e11d48;
+}
+.paper-action-btn-delete:hover {
+    background-color: #fee2e2;
+    color: #be123c;
+    transform: scale(1.05);
+}
+
+/* Divider Between Buttons */
+.paper-action-divider {
+    width: 1px;
+    height: 15px;
+    background-color: #e6e2d8;
+    margin: 0 1px;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Live Monitoring Dashboard & Fullscreen Presentation Styles
+   ========================================================================== */
+.monitoring-fullscreen-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    transition: all 0.25s ease;
+}
+
+/* Container Fullscreen Mode (Native :fullscreen & Fallback Class) */
+.monitoring-fullscreen-wrapper:fullscreen,
+.monitoring-fullscreen-wrapper:-webkit-full-screen,
+body.monitoring-fs-active .monitoring-fullscreen-wrapper {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    padding: 0.75rem 1.25rem !important;
+    background-color: var(--paper-bg, #f8f6f0) !important;
+    background-image: radial-gradient(#e5e0d3 0.75px, transparent 0.75px) !important;
+    background-size: 20px 20px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+    box-sizing: border-box !important;
+}
+
+body.monitoring-fs-active {
+    overflow: hidden !important;
+}
+
+body.monitoring-fs-active nav.navbar-paper,
+body.monitoring-fs-active footer {
+    display: none !important;
+}
+
+/* Metric Cards in Fullscreen */
+.monitoring-fullscreen-wrapper:fullscreen .metric-card-paper,
+.monitoring-fullscreen-wrapper:-webkit-full-screen .metric-card-paper,
+body.monitoring-fs-active .metric-card-paper {
+    padding: 0.65rem 1rem !important;
+}
+
+.monitoring-fullscreen-wrapper:fullscreen .metric-number,
+.monitoring-fullscreen-wrapper:-webkit-full-screen .metric-number,
+body.monitoring-fs-active .metric-number {
+    font-size: 1.85rem !important;
+    line-height: 1.1 !important;
+}
+
+.monitoring-fullscreen-wrapper:fullscreen .metric-icon-box,
+.monitoring-fullscreen-wrapper:-webkit-full-screen .metric-icon-box,
+body.monitoring-fs-active .metric-icon-box {
+    padding: 0.4rem !important;
+    font-size: 1.1rem !important;
+}
+
+/* Chart Area in Fullscreen (Fills 100% of Remaining Height Without Scrollbars) */
+.monitoring-fullscreen-wrapper:fullscreen .chart-card-paper,
+.monitoring-fullscreen-wrapper:-webkit-full-screen .chart-card-paper,
+body.monitoring-fs-active .chart-card-paper {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 0 !important;
+    padding: 0.85rem 1.25rem 0.65rem 1.25rem !important;
+}
+
+.monitoring-fullscreen-wrapper:fullscreen .chart-canvas-box,
+.monitoring-fullscreen-wrapper:-webkit-full-screen .chart-canvas-box,
+body.monitoring-fs-active .chart-canvas-box {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    position: relative !important;
+    width: 100% !important;
+}
+
+/* Chart Canvas Box default */
+.chart-canvas-box {
+    position: relative;
+    width: 100%;
+    min-height: 380px;
+}
+
+
+
 
 
 

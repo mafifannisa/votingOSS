@@ -166,4 +166,33 @@ class Voter extends Model
     {
         return (bool) $this->db->exec('UPDATE voters SET has_voted = 0');
     }
+
+    /**
+     * Dapatkan rekapitulasi jumlah siswa dan partisipasi suara per kelas
+     */
+    public function getStatsByClass(): array
+    {
+        $sql = 'SELECT 
+                    kelas, 
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN has_voted = 1 THEN 1 ELSE 0 END) AS voted,
+                    SUM(CASE WHEN has_voted = 0 THEN 1 ELSE 0 END) AS not_voted
+                FROM voters 
+                WHERE kelas IS NOT NULL AND kelas != ""
+                GROUP BY kelas 
+                ORDER BY kelas ASC';
+        $rows = $this->db->query($sql)->fetchAll();
+        return array_map(function ($row) {
+            $total = (int)$row['total'];
+            $voted = (int)$row['voted'];
+            $rate = $total > 0 ? round(($voted / $total) * 100, 1) : 0.0;
+            return [
+                'kelas' => (string)$row['kelas'],
+                'total' => $total,
+                'voted' => $voted,
+                'not_voted' => (int)$row['not_voted'],
+                'rate' => $rate
+            ];
+        }, $rows);
+    }
 }

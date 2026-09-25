@@ -10,9 +10,12 @@ use App\Core\Security;
             <p class="text-muted mb-0"><?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua OSIS') ?></p>
         </div>
     </div>
-    <div>
-        <a href="/admin/results" class="btn btn-warning fw-bold px-4 py-2 shadow-sm">
-            <i class="bi bi-trophy-fill me-1"></i> LIHAT HASIL PEMILIHAN
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <a href="/admin/monitoring" class="btn btn-paper-primary fw-bold px-3 py-2 shadow-sm">
+            <i class="bi bi-broadcast me-1"></i> PANTAU SUARA MASUK
+        </a>
+        <a href="/admin/results" class="btn btn-warning text-dark fw-bold px-3 py-2 shadow-sm">
+            <i class="bi bi-trophy-fill me-1"></i> HASIL PLENO
         </a>
     </div>
 </div>
@@ -35,7 +38,9 @@ use App\Core\Security;
         <div class="paper-card p-4 h-100 border-start border-success border-4">
             <div class="text-muted small text-uppercase fw-bold mb-1">Sudah Memilih</div>
             <div class="display-6 fw-bold text-success mb-1"><?= number_format($totalVoted, 0, ',', '.') ?></div>
-            <small class="text-muted">Suara sah tercatat</small>
+            <small class="text-muted">
+                <a href="/admin/monitoring" class="text-decoration-none text-success fw-semibold">Pantau Real-time &rarr;</a>
+            </small>
         </div>
     </div>
 

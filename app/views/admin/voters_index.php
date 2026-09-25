@@ -123,29 +123,37 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
                                 <?php endif; ?>
                             </td>
                             <td class="text-end text-nowrap">
-                                <?php if ((int)$v['has_voted'] === 1): ?>
-                                    <button type="button" 
-                                            class="btn btn-sm btn-outline-warning text-dark me-1 btn-trigger-reset-single"
-                                            data-voter-id="<?= (int)$v['id'] ?>"
-                                            data-voter-nama="<?= Security::escape($v['nama']) ?>"
-                                            data-voter-kelas="<?= Security::escape($v['kelas']) ?>"
-                                            title="Reset Hak Pilih Siswa Ini">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                    </button>
-                                <?php endif; ?>
-                                <a href="/admin/voters/edit/<?= (int)$v['id'] ?>" class="btn btn-sm btn-outline-secondary me-1" title="Edit Data Pemilih">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form action="/admin/voters/delete/<?= (int)$v['id'] ?>" method="POST" class="d-inline"
-                                      data-confirm="Apakah Anda yakin ingin menghapus data pemilih <?= Security::escape($v['nama']) ?> (<?= Security::escape($v['kelas']) ?>)?"
-                                      data-confirm-title="Hapus Data Pemilih?"
-                                      data-confirm-btn="Ya, Hapus"
-                                      data-confirm-danger="true">
-                                    <?= Security::csrfField() ?>
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Pemilih">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <div class="paper-action-group">
+                                    <?php if ((int)$v['has_voted'] === 1): ?>
+                                        <button type="button" 
+                                                class="paper-action-btn paper-action-btn-reset btn-trigger-reset-single"
+                                                data-voter-id="<?= (int)$v['id'] ?>"
+                                                data-voter-nama="<?= Security::escape($v['nama']) ?>"
+                                                data-voter-kelas="<?= Security::escape($v['kelas']) ?>"
+                                                title="Reset Status Hak Pilih Siswa">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                        <span class="paper-action-divider"></span>
+                                    <?php endif; ?>
+                                    <a href="/admin/voters/edit/<?= (int)$v['id'] ?>" 
+                                       class="paper-action-btn paper-action-btn-edit" 
+                                       title="Edit Data Pemilih">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <span class="paper-action-divider"></span>
+                                    <form action="/admin/voters/delete/<?= (int)$v['id'] ?>" method="POST" class="d-inline m-0 p-0"
+                                          data-confirm="Apakah Anda yakin ingin menghapus data pemilih <?= Security::escape($v['nama']) ?> (<?= Security::escape($v['kelas']) ?>)?"
+                                          data-confirm-title="Hapus Data Pemilih?"
+                                          data-confirm-btn="Ya, Hapus"
+                                          data-confirm-danger="true">
+                                        <?= Security::csrfField() ?>
+                                        <button type="submit" 
+                                                class="paper-action-btn paper-action-btn-delete" 
+                                                title="Hapus Pemilih">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

@@ -13,11 +13,14 @@ use App\Core\Security;
                 <?php if ($isUnlocked): ?>
                     <form action="/admin/results/lock" method="POST" class="d-inline">
                         <?= Security::csrfField() ?>
-                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        <button type="submit" class="btn btn-sm btn-outline-danger me-1">
                             <i class="bi bi-lock me-1"></i> Kunci Kembali
                         </button>
                     </form>
                 <?php endif; ?>
+                <a href="/admin/monitoring" class="btn btn-sm btn-paper-primary me-1">
+                    <i class="bi bi-broadcast me-1"></i> Pantau Suara
+                </a>
                 <a href="/admin/dashboard" class="btn btn-sm btn-paper-secondary">
                     <i class="bi bi-arrow-left me-1"></i> Dashboard
                 </a>
@@ -34,7 +37,7 @@ use App\Core\Security;
                         </div>
                         <h4 class="fw-bold mb-2">Akses Terkunci</h4>
                         <p class="text-muted small mb-4">
-                            Untuk mencegah tombol terpencet secara tidak sengaja, masukkan kode akses resmi panitia untuk membuka hasil perolehan suara.
+                            Untuk menjaga kerahasiaan suara pemilih, masukkan kode akses resmi panitia untuk membuka hasil perolehan suara paslon.
                         </p>
 
                         <form action="/admin/results/unlock" method="POST">
@@ -53,12 +56,21 @@ use App\Core\Security;
                                     required 
                                     autofocus
                                 >
+                                <div class="form-text small text-muted mt-2">
+                                    <i class="bi bi-key-fill me-1"></i>Kode otorisasi default: <strong>osis2026</strong>
+                                </div>
                             </div>
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-paper-primary py-2 fw-bold">
-                                    <i class="bi bi-unlock me-1"></i> BUKA HASIL PEMILIHAN
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-warning text-dark py-2 fw-bold shadow-sm">
+                                    <i class="bi bi-unlock-fill me-1"></i> BUKA HASIL PEMILIHAN
                                 </button>
+                            </div>
+
+                            <div class="pt-3 border-top">
+                                <a href="/admin/monitoring" class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="bi bi-broadcast me-1"></i> Masuk ke Halaman Pemantauan Suara (Live)
+                                </a>
                             </div>
                         </form>
                     </div>
