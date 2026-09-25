@@ -19,9 +19,14 @@ use App\Core\Security;
                         Format yang didukung: <strong>.xlsx</strong> (Excel) dan <strong>.csv</strong>
                     </p>
                 </div>
-                <a href="/admin/voters/template" class="btn btn-sm btn-paper-outline-success">
-                    <i class="bi bi-download me-1"></i> Unduh Contoh Template CSV
-                </a>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/admin/voters/template?format=xlsx" class="btn btn-sm btn-paper-success" title="Direkomendasikan: Kolom terpisah rapi di Excel dan format angka 0 di NISN aman">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Unduh Template Excel (.xlsx)
+                    </a>
+                    <a href="/admin/voters/template?format=csv" class="btn btn-sm btn-paper-outline-secondary" title="Format CSV standar">
+                        <i class="bi bi-filetype-csv me-1"></i> Template CSV
+                    </a>
+                </div>
             </div>
 
             <form action="/admin/voters/import/process" method="POST" enctype="multipart/form-data">
@@ -33,12 +38,13 @@ use App\Core\Security;
                 </div>
 
                 <div class="alert alert-info border-0 small mb-4">
-                    <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-1"></i> Ketentuan Struktur Kolom:</h6>
+                    <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-1"></i> Petunjuk & Ketentuan Import:</h6>
                     <ul class="mb-0 ps-3">
+                        <li><strong>Disarankan gunakan format .xlsx</strong> agar kolom otomatis terpisah rapi di Excel dan angka <code>0</code> di awal NISN tidak hilang.</li>
                         <li>File wajib memiliki header pada baris pertama dengan kolom: <code>nisn</code>, <code>nama</code>, <code>kelas</code>, <code>jurusan</code>.</li>
                         <li>Nilai NISN harus berupa angka unik (8-15 digit). Baris tanpa NISN akan otomatis dilewati.</li>
                         <li>Jika NISN sudah ada di database, data nama/kelas/jurusan akan diperbarui (*update*). Jika belum, data baru akan ditambahkan (*insert*).</li>
-                        <li>Sistem secara otomatis meng-hash NISN menggunakan HMAC-SHA256 sebelum disimpan ke database.</li>
+                        <li>Sistem secara otomatis meng-hash NISN menggunakan HMAC-SHA256 sebelum disimpan ke database demi privasi.</li>
                     </ul>
                 </div>
 

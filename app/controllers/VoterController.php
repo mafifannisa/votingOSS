@@ -167,17 +167,49 @@ class VoterController extends Controller
     {
         $this->requireAdmin();
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="template_pemilih_osis.csv"');
+        $format = strtolower(trim((string)($_GET['format'] ?? 'xlsx')));
 
-        $output = fopen('php://output', 'w');
-        // BOM for UTF-8 Excel support
-        fputs($output, "\xEF\xBB\xBF");
-        fputcsv($output, ['nisn', 'nama', 'kelas', 'jurusan']);
-        fputcsv($output, ['0051234567', 'Ahmad Pratama', 'X RPL 1', 'Rekayasa Perangkat Lunak']);
-        fputcsv($output, ['0051234568', 'Budi Santoso', 'XI TKJ 2', 'Teknik Komputer & Jaringan']);
-        fputcsv($output, ['0051234569', 'Citra Lestari', 'XII DKV 1', 'Desain Komunikasi Visual']);
-        fclose($output);
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        $headers = ['nisn', 'nama', 'kelas', 'jurusan'];
+        $sampleData = [
+            ['0051234567', 'Ahmad Pratama', 'X RPL 1', 'Rekayasa Perangkat Lunak'],
+            ['0051234568', 'Budi Santoso', 'XI TKJ 2', 'Teknik Komputer & Jaringan'],
+            ['0051234569', 'Citra Lestari', 'XII DKV 1', 'Desain Komunikasi Visual']
+        ];
+
+        if ($format === 'csv') {
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="template_pemilih_osis.csv"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+
+            $output = fopen('php://output', 'w');
+            // BOM UTF-8 untuk kompatibilitas Excel
+            fputs($output, "\xEF\xBB\xBF");
+            // Direktif sep=, memberitahu Excel memisahkan kolom dengan koma di regional manapun
+            fputs($output, "sep=,\r\n");
+            fputcsv($output, $headers, ',', '"', "\\");
+            foreach ($sampleData as $row) {
+                fputcsv($output, $row, ',', '"', "\\");
+            }
+            fclose($output);
+            exit;
+        }
+
+        // Default: Format Excel (.xlsx) murni yang rapi dan mempertahankan angka 0 di depan NISN
+        $filePath = ExcelParser::createXlsxTemplate($headers, $sampleData);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="template_pemilih_osis.xlsx"');
+        header('Content-Length: ' . filesize($filePath));
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        readfile($filePath);
+        @unlink($filePath);
         exit;
     }
 

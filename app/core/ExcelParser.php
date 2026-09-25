@@ -36,21 +36,53 @@ class ExcelParser
             return ['success' => false, 'error' => 'Gagal membaca file CSV.', 'data' => []];
         }
 
-        $header = null;
+        // Baca baris pertama untuk deteksi delimiter dan sep= directive
+        $firstLine = fgets($handle);
+        if ($firstLine === false) {
+            fclose($handle);
+            return ['success' => false, 'error' => 'File CSV kosong.', 'data' => []];
+        }
+
+        // Hapus BOM UTF-8 jika ada di awal file
+        $bom = pack('CCC', 0xef, 0xbb, 0xbf);
+        if (str_starts_with($firstLine, $bom)) {
+            $firstLine = substr($firstLine, 3);
+        }
+
+        $delimiter = ',';
+        $trimmedFirstLine = trim($firstLine);
+
+        // Cek apakah ada direktif Excel "sep=X"
+        if (preg_match('/^sep=([,;\t|])/i', $trimmedFirstLine, $matches)) {
+            $delimiter = $matches[1];
+            // Lanjut ke baris berikutnya untuk header sebenarnya
+            $firstLine = fgets($handle);
+            if ($firstLine === false) {
+                fclose($handle);
+                return ['success' => false, 'error' => 'File CSV tidak memiliki baris data atau header.', 'data' => []];
+            }
+        } else {
+            // Auto-detect delimiter berdasarkan jumlah kemunculan di baris pertama
+            $semicolonCount = substr_count($firstLine, ';');
+            $commaCount = substr_count($firstLine, ',');
+            $tabCount = substr_count($firstLine, "\t");
+
+            if ($semicolonCount > $commaCount && $semicolonCount >= $tabCount) {
+                $delimiter = ';';
+            } elseif ($tabCount > $commaCount && $tabCount > $semicolonCount) {
+                $delimiter = "\t";
+            } else {
+                $delimiter = ',';
+            }
+        }
+
+        // Parse header dari baris header pertama
+        $headerRaw = str_getcsv(trim($firstLine), $delimiter, '"', "\\");
+        $header = array_map(fn($col) => strtolower(trim((string)$col)), $headerRaw);
+
         $rows = [];
-
-        while (($row = fgetcsv($handle, 1000, ',')) !== false) {
-            // Cek jika pemisah titik koma ';'
-            if (count($row) === 1 && str_contains($row[0], ';')) {
-                $row = explode(';', $row[0]);
-            }
-
-            if ($header === null) {
-                $header = array_map(fn($col) => strtolower(trim((string)$col)), $row);
-                continue;
-            }
-
-            if (empty(array_filter($row))) {
+        while (($row = fgetcsv($handle, 1000, $delimiter, '"', "\\")) !== false) {
+            if (empty(array_filter($row, fn($v) => trim((string)$v) !== ''))) {
                 continue;
             }
 
@@ -270,5 +302,76 @@ class ExcelParser
             }
         }
         return null;
+    }
+
+    /**
+     * Membuat template file .xlsx sederhana secara native (menggunakan ZipArchive bawaan PHP)
+     * Mengembalikan path ke file temporary yang dihasilkan.
+     */
+    public static function createXlsxTemplate(array $headers, array $rows): string
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'tpl_xlsx_');
+        $zip = new ZipArchive();
+        if ($zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new RuntimeException('Tidak dapat membuat file template XLSX sementara.');
+        }
+
+        $contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n"
+            . '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            . '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            . '<Default Extension="xml" ContentType="application/xml"/>'
+            . '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+            . '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            . '</Types>';
+
+        $rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n"
+            . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            . '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+            . '</Relationships>';
+
+        $wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n"
+            . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            . '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+            . '</Relationships>';
+
+        $wb = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n"
+            . '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            . '<sheets><sheet name="DPT Pemilih" sheetId="1" r:id="rId1"/></sheets>'
+            . '</workbook>';
+
+        $allRows = array_merge([$headers], $rows);
+        $colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+        $sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n"
+            . '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            . '<cols>'
+            . '<col min="1" max="1" width="18" customWidth="1"/>'
+            . '<col min="2" max="2" width="28" customWidth="1"/>'
+            . '<col min="3" max="3" width="14" customWidth="1"/>'
+            . '<col min="4" max="4" width="32" customWidth="1"/>'
+            . '</cols>'
+            . '<sheetData>';
+
+        foreach ($allRows as $rIdx => $row) {
+            $rowNum = $rIdx + 1;
+            $sheetXml .= '<row r="' . $rowNum . '">';
+            foreach ($row as $cIdx => $cellVal) {
+                $colLetter = $colLetters[$cIdx] ?? 'A';
+                $escaped = htmlspecialchars((string)$cellVal, ENT_XML1, 'UTF-8');
+                // Menggunakan inlineStr agar angka NISN tetap bertipe teks dan angka 0 di depan tidak dipotong oleh Excel
+                $sheetXml .= '<c r="' . $colLetter . $rowNum . '" t="inlineStr"><is><t>' . $escaped . '</t></is></c>';
+            }
+            $sheetXml .= '</row>';
+        }
+        $sheetXml .= '</sheetData></worksheet>';
+
+        $zip->addFromString('[Content_Types].xml', $contentTypes);
+        $zip->addFromString('_rels/.rels', $rels);
+        $zip->addFromString('xl/_rels/workbook.xml.rels', $wbRels);
+        $zip->addFromString('xl/workbook.xml', $wb);
+        $zip->addFromString('xl/worksheets/sheet1.xml', $sheetXml);
+        $zip->close();
+
+        return $tempFile;
     }
 }
