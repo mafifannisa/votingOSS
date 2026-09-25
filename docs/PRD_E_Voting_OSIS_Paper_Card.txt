@@ -1,0 +1,1038 @@
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+APLIKASI E-VOTING PEMILIHAN KETUA OSIS
+Tema UI: Paper Card
+
+============================================================
+1. RINGKASAN PRODUK
+============================================================
+
+Aplikasi ini merupakan sistem E-Voting Pemilihan Ketua OSIS berbasis web
+yang memungkinkan siswa melakukan pemilihan secara digital menggunakan
+NISN sebagai identitas pemilih.
+
+Sistem terdiri dari dua area utama:
+
+A. HALAMAN PEMILIH
+1. Memasukkan NISN.
+2. Sistem memvalidasi NISN berdasarkan data siswa yang telah diinput admin.
+3. Jika belum memilih, pemilih masuk ke halaman pemilihan.
+4. Pemilih melihat pasangan calon beserta foto, nama, jurusan, visi, dan misi.
+5. Pemilih memilih satu pasangan calon.
+6. Pemilih melakukan konfirmasi.
+7. Suara otomatis tersimpan.
+8. Status pemilih berubah menjadi sudah memilih.
+9. Pemilih otomatis kembali ke halaman login.
+
+NISN yang sudah digunakan untuk memilih tidak dapat digunakan kembali.
+
+B. HALAMAN ADMIN
+Admin dapat:
+- Login.
+- Mengelola data pasangan calon.
+- Mengelola data siswa/pemilih.
+- Import data siswa dari Excel.
+- Melihat statistik pemilihan.
+- Mengakses halaman hasil pemilihan menggunakan kode akses.
+- Melihat hasil Paslon 1 dan Paslon 2 setelah animasi penghitungan 60 detik.
+
+============================================================
+2. TUJUAN SISTEM
+============================================================
+
+Sistem bertujuan membuat proses pemilihan Ketua OSIS yang:
+- Cepat.
+- Mudah digunakan.
+- Mengurangi penggunaan kertas.
+- Mencegah pemilih memilih lebih dari satu kali.
+- Memudahkan panitia mengelola data pemilih.
+- Menampilkan statistik secara otomatis.
+- Memiliki keamanan terhadap manipulasi data.
+- Dapat digunakan bersamaan dari 4 tablet dan 4 laptop.
+
+============================================================
+3. TECH STACK
+============================================================
+
+Frontend:
+- HTML
+- CSS
+- JavaScript
+- Bootstrap
+
+Backend:
+- PHP
+
+Database:
+- MySQL
+
+Arsitektur:
+- MVC (Model View Controller)
+
+Keamanan:
+- Parameterized Queries
+- Password Hashing
+- HMAC/Hash untuk identitas pencarian NISN
+- CSRF Protection
+- Session Security
+- Input Validation
+- File Upload Validation
+- Database Transaction
+
+============================================================
+4. CATATAN TENTANG SQLITE3
+============================================================
+
+Requirement sqlite3.connect() tidak kompatibel langsung dengan aplikasi
+utama PHP + MySQL karena sqlite3.connect() adalah API Python untuk SQLite.
+
+Arsitektur yang direkomendasikan:
+
+Excel
+  |
+  v
+Python Importer
+  |
+  v
+SQLite Staging
+  |
+  v
+Validasi Data
+  |
+  v
+MySQL
+  |
+  v
+PHP E-Voting
+
+Aplikasi utama tetap menggunakan PHP MVC + MySQL.
+
+Jika sqlite3.connect() memang diwajibkan oleh tugas, penggunaannya
+diletakkan pada utility Python khusus untuk proses staging/import Excel,
+bukan sebagai database utama aplikasi voting.
+
+============================================================
+5. ARSITEKTUR SISTEM
+============================================================
+
+                 PEMILIH
+           4 Tablet + 4 Laptop
+                    |
+                    | HTTP/HTTPS
+                    v
+              WEB SERVER
+             Apache/XAMPP
+                    |
+                  PHP MVC
+                    |
+                    v
+                  MySQL
+                    ^
+                    |
+                  ADMIN
+              Laptop Panitia
+
+Semua perangkat menggunakan SATU server dan SATU database MySQL.
+
+Jangan membuat database voting terpisah di setiap perangkat.
+
+============================================================
+6. STRUKTUR MVC
+============================================================
+
+app/
+├── controllers/
+│   ├── AuthController.php
+│   ├── VoterController.php
+│   ├── CandidateController.php
+│   ├── VotingController.php
+│   ├── DashboardController.php
+│   └── ResultController.php
+│
+├── models/
+│   ├── Voter.php
+│   ├── Candidate.php
+│   ├── Vote.php
+│   ├── Admin.php
+│   └── Election.php
+│
+└── views/
+    ├── auth/
+    ├── voter/
+    ├── admin/
+    ├── candidates/
+    ├── statistics/
+    └── results/
+
+config/
+├── database.php
+├── app.php
+└── security.php
+
+public/
+├── index.php
+└── assets/
+    ├── css/
+    ├── js/
+    └── images/
+
+routes/
+└── web.php
+
+storage/
+├── uploads/
+└── logs/
+
+database/
+└── schema.sql
+
+README.md
+
+============================================================
+7. ROLE PENGGUNA
+============================================================
+
+ADMIN:
+- Login admin
+- Mengelola siswa
+- Import Excel
+- Mengelola paslon
+- Melihat statistik
+- Membuka hasil dengan kode akses
+- Logout
+
+PEMILIH:
+- Login menggunakan NISN
+- Melihat paslon
+- Memilih satu paslon
+- Konfirmasi
+- Suara tersimpan
+- Logout otomatis
+- Kembali ke halaman login
+
+============================================================
+8. LOGIN PEMILIH
+============================================================
+
+Form:
+- Input NISN
+- Tombol MASUK
+
+Validasi:
+1. NISN tidak boleh kosong.
+2. Format NISN harus valid.
+3. NISN harus terdaftar.
+4. NISN yang sudah memilih harus ditolak.
+5. Rate limit login dapat diterapkan.
+
+Alur:
+NISN
+  |
+  v
+Normalisasi
+  |
+  v
+HMAC/Hash
+  |
+  v
+Cari di database
+  |
+  +-- Tidak ditemukan --> Error
+  |
+  v
+Cek has_voted
+  |
+  +-- TRUE --> "Anda sudah memilih"
+  |
+  v
+Masuk halaman pemilihan
+
+============================================================
+9. FITUR INPUT PASANGAN CALON
+============================================================
+
+Admin dapat menambahkan:
+- Nomor urut
+- Nama ketua
+- Nama wakil
+- Jurusan ketua
+- Jurusan wakil
+- Foto paslon
+- Visi
+- Misi
+- Status aktif
+
+Admin juga dapat:
+- Menambah
+- Mengedit
+- Menghapus/menonaktifkan
+- Melihat daftar paslon
+
+============================================================
+10. HALAMAN PEMILIHAN
+============================================================
+
+Setiap kartu paslon menampilkan:
+- Nomor paslon
+- Foto
+- Nama ketua
+- Nama wakil
+- Jurusan
+- Visi
+- Misi
+- Tombol PILIH PASLON
+
+Tema:
+PAPER CARD
+
+Karakter UI:
+- Background seperti kertas
+- Card putih
+- Border tipis
+- Shadow lembut
+- Rounded corner secukupnya
+- Typography bersih
+- Modern dan mudah dibaca
+
+============================================================
+11. PROSES VOTING
+============================================================
+
+Alur:
+Halaman Paslon
+      |
+      v
+Pilih Paslon
+      |
+      v
+Konfirmasi
+      |
+      +-- Batal --> Kembali ke pilihan
+      |
+      v
+Database Transaction
+      |
+      +-- INSERT vote
+      |
+      +-- UPDATE status pemilih
+      |
+      v
+COMMIT
+      |
+      v
+Session dihentikan
+      |
+      v
+Kembali ke Login
+
+Jika terjadi error:
+ROLLBACK
+
+============================================================
+12. PENCEGAHAN VOTING GANDA
+============================================================
+
+Database menjadi sumber kebenaran, bukan hanya session.
+
+Tabel voters memiliki:
+- id
+- nisn_hash
+- has_voted
+
+Ketika voting berhasil:
+has_voted = 1
+
+Voting harus menggunakan transaction dan kondisi database agar
+pemilih tidak dapat melakukan voting kedua kali.
+
+============================================================
+13. KERAHASIAAN SUARA
+============================================================
+
+Disarankan memisahkan data identitas pemilih dengan pilihan suara.
+
+Tabel voters:
+- Menyimpan identitas pemilih dan status sudah memilih.
+
+Tabel votes:
+- Menyimpan pilihan paslon.
+- Tidak menyimpan NISN.
+
+Dengan desain ini sistem dapat mengetahui bahwa siswa sudah memilih
+tanpa secara langsung menghubungkan identitas siswa dengan pilihannya.
+
+============================================================
+14. IMPORT DATA SISWA DARI EXCEL
+============================================================
+
+Admin memberikan file Excel sebagai dasar data pemilih.
+
+Kolom minimum:
+- NISN
+- Nama
+- Kelas
+- Jurusan
+
+Flow:
+Upload Excel
+   |
+   v
+Validasi format
+   |
+   v
+Validasi kolom
+   |
+   v
+Validasi NISN
+   |
+   v
+Cek duplikat
+   |
+   v
+Preview
+   |
+   v
+Konfirmasi Import
+   |
+   v
+Insert/Update MySQL
+
+File tidak boleh langsung dimasukkan ke database tanpa validasi.
+
+============================================================
+15. DASHBOARD STATISTIK
+============================================================
+
+Dashboard menampilkan:
+- Total pemilih
+- Sudah memilih
+- Belum memilih
+- Persentase partisipasi
+- Jumlah suara Paslon 1
+- Jumlah suara Paslon 2
+- Grafik/statistik
+
+Contoh:
+Total pemilih : 500
+Sudah memilih : 327
+Belum memilih : 173
+Partisipasi   : 65,4%
+
+============================================================
+16. HALAMAN HASIL PEMILIHAN
+============================================================
+
+Pada dashboard terdapat tombol:
+"LIHAT HASIL PEMILIHAN"
+
+Untuk mencegah tombol terpencet secara tidak sengaja,
+sistem meminta kode akses.
+
+Form:
+- Kode Akses
+- Tombol LANJUTKAN
+
+Kode akses disimpan menggunakan password hashing dan diverifikasi
+dengan password_verify().
+
+Kode akses tidak disimpan dalam plaintext.
+
+============================================================
+17. ANIMASI PENGHITUNGAN 60 DETIK
+============================================================
+
+Setelah kode akses benar:
+
+MENGHITUNG SUARA
+
+Countdown:
+60
+59
+58
+...
+3
+2
+1
+
+Setelah 60 detik:
+
+HASIL PEMILIHAN
+
+PASLON 01
+XXX SUARA
+
+PASLON 02
+XXX SUARA
+
+Catatan:
+Server tidak perlu benar-benar menunggu 60 detik untuk menghitung.
+
+Server:
+1. Mengambil hasil dari database.
+2. JavaScript menjalankan countdown 60 detik.
+3. Hasil ditampilkan setelah countdown selesai.
+
+============================================================
+18. DATABASE SCHEMA
+============================================================
+
+TABEL voters
+
+Field:
+- id BIGINT PRIMARY KEY
+- nisn_hash VARCHAR(128)
+- nama VARCHAR(150)
+- kelas VARCHAR(50)
+- jurusan VARCHAR(100)
+- has_voted BOOLEAN
+- created_at DATETIME
+- updated_at DATETIME
+
+TABEL candidates
+
+Field:
+- id INT PRIMARY KEY
+- nomor_urut INT
+- nama_ketua VARCHAR(150)
+- nama_wakil VARCHAR(150)
+- jurusan_ketua VARCHAR(100)
+- jurusan_wakil VARCHAR(100)
+- foto VARCHAR(255)
+- visi TEXT
+- misi TEXT
+- status BOOLEAN
+- created_at DATETIME
+
+TABEL votes
+
+Field:
+- id BIGINT PRIMARY KEY
+- candidate_id INT
+- created_at DATETIME
+
+Relasi:
+candidate_id -> candidates.id
+
+TABEL admins
+
+Field:
+- id INT PRIMARY KEY
+- username VARCHAR(100)
+- password_hash VARCHAR(255)
+- created_at DATETIME
+
+TABEL election_config
+
+Field:
+- id INT PRIMARY KEY
+- election_name VARCHAR(255)
+- result_code_hash VARCHAR(255)
+- status BOOLEAN
+- created_at DATETIME
+
+============================================================
+19. ERD SEDERHANA
+============================================================
+
+voters
+  |
+  | status voting
+  |
+  +--------------------+
+
+candidates
+  |
+  | 1
+  |
+  | *
+votes
+
+admins
+  |
+  | mengelola
+  |
+  +--> voters
+  +--> candidates
+
+election_config
+  |
+  +--> konfigurasi pemilihan
+
+============================================================
+20. PARAMETERIZED QUERIES
+============================================================
+
+WAJIB menggunakan parameterized query.
+
+Jangan:
+$sql = "SELECT * FROM voters WHERE nisn='$nisn'";
+
+Gunakan PDO prepared statement:
+
+$stmt = $pdo->prepare(
+    "SELECT * FROM voters WHERE nisn_hash = ?"
+);
+
+$stmt->execute([$nisnHash]);
+
+Tujuan:
+- Mencegah SQL Injection
+- Memisahkan query dan data input
+
+============================================================
+21. ENKRIPSI DAN HASHING
+============================================================
+
+Password admin:
+password_hash()
+password_verify()
+
+Kode akses hasil:
+password_hash()
+password_verify()
+
+NISN:
+Gunakan HMAC-SHA256 untuk kebutuhan pencarian.
+
+NISN asli
+   |
+   v
+HMAC-SHA256
+   |
+   v
+nisn_hash
+
+Untuk data yang memang harus dapat didekripsi, gunakan encryption
+modern seperti AES-256-GCM dan simpan encryption key di environment
+secret, bukan di source code.
+
+============================================================
+22. SESSION SECURITY
+============================================================
+
+Setelah login:
+session_regenerate_id(true);
+
+Session sebaiknya:
+- HTTPOnly
+- Secure jika HTTPS digunakan
+- SameSite sesuai kebutuhan
+- Memiliki timeout
+- Dihapus setelah voting
+
+Setelah voting:
+session_destroy();
+
+Kemudian redirect ke halaman login.
+
+============================================================
+23. CSRF PROTECTION
+============================================================
+
+CSRF token wajib digunakan pada:
+- Login admin
+- Import Excel
+- Tambah paslon
+- Edit paslon
+- Hapus paslon
+- Voting
+- Perubahan data lainnya
+
+Token harus diverifikasi di server.
+
+============================================================
+24. VALIDASI UPLOAD FOTO
+============================================================
+
+Format yang diizinkan:
+- JPG
+- JPEG
+- PNG
+- WEBP
+
+Validasi:
+- Extension
+- MIME type
+- Ukuran file
+- Nama file
+
+Nama file dibuat random, contoh:
+candidate_8f31a2.jpg
+
+============================================================
+25. KEAMANAN IMPORT EXCEL
+============================================================
+
+File Excel harus:
+- Diperiksa extension
+- Diperiksa MIME type
+- Dibatasi ukuran
+- Diperiksa struktur kolom
+- Diperiksa duplikasi NISN
+- Divalidasi sebelum masuk database
+
+Flow:
+Upload
+  |
+Scan
+  |
+Parse
+  |
+Validate
+  |
+Preview
+  |
+Admin Confirm
+  |
+Database
+
+============================================================
+26. JAVASCRIPT
+============================================================
+
+JavaScript digunakan untuk:
+- Countdown 60 detik
+- Animasi statistik
+- Konfirmasi voting
+- Preview foto
+- Validasi frontend
+- Progress bar
+- Interaksi UI
+- Animasi Paper Card
+- Auto redirect
+
+Validasi keamanan tetap dilakukan di server PHP.
+
+============================================================
+27. RESPONSIVE DESIGN
+============================================================
+
+Target:
+- 4 tablet
+- 4 laptop
+
+Tablet:
+Card paslon dapat ditampilkan satu atau dua kolom sesuai lebar layar.
+
+Laptop:
+Paslon dapat ditampilkan berdampingan.
+
+Bootstrap Grid digunakan untuk responsive layout.
+
+============================================================
+28. ALUR PEMILIH LENGKAP
+============================================================
+
+START
+  |
+  v
+Halaman Login
+  |
+  v
+Input NISN
+  |
+  v
+Validasi NISN
+  |
+  +-- Tidak ditemukan --> Error
+  |
+  v
+Cek has_voted
+  |
+  +-- TRUE --> Sudah memilih
+  |
+  v
+Halaman Paslon
+  |
+  v
+Pilih Paslon
+  |
+  v
+Konfirmasi
+  |
+  +-- Batal --> Kembali
+  |
+  v
+Transaction
+  |
+  +-- Insert Vote
+  |
+  +-- Update Voter
+  |
+  v
+COMMIT
+  |
+  v
+Logout
+  |
+  v
+Kembali ke Login
+  |
+  v
+END
+
+============================================================
+29. ALUR ADMIN
+============================================================
+
+Login Admin
+    |
+    v
+Dashboard
+    |
+    +-- Data Pemilih
+    |     +-- Tambah
+    |     +-- Edit
+    |     +-- Hapus
+    |     +-- Import Excel
+    |
+    +-- Data Paslon
+    |     +-- Tambah
+    |     +-- Edit
+    |     +-- Hapus/Nonaktifkan
+    |
+    +-- Statistik
+    |
+    +-- Hasil Pemilihan
+             |
+             v
+        Kode Akses
+             |
+             v
+        Countdown 60 Detik
+             |
+             v
+        Hasil Paslon
+
+============================================================
+30. CONCURRENCY 8 PERANGKAT
+============================================================
+
+4 Tablet + 4 Laptop
+        |
+        v
+Satu Wi-Fi/Network
+        |
+        v
+Satu PHP Server
+        |
+        v
+Satu MySQL Database
+
+Semua perangkat membaca dan menulis ke database yang sama.
+
+Voting harus menggunakan database transaction untuk menangani
+akses bersamaan.
+
+============================================================
+31. DEPLOYMENT
+============================================================
+
+Contoh:
+
+              Wi-Fi Router
+                   |
+             PHP/MySQL Server
+                   |
+       +-----------+-----------+
+       |           |           |
+    Tablet       Tablet      Laptop
+       |
+   perangkat lainnya
+
+Satu laptop dapat menjadi server utama PHP + MySQL.
+
+Perangkat lain mengakses alamat lokal server, contoh:
+http://192.168.x.x/e-voting/
+
+Gunakan IP lokal tetap/static agar alamat server tidak berubah.
+
+============================================================
+32. BACKUP
+============================================================
+
+Sebelum pemilihan:
+1. Pastikan database sehat.
+2. Import data siswa.
+3. Validasi jumlah siswa.
+4. Input paslon.
+5. Lakukan testing.
+6. Reset data testing.
+7. Buat backup final.
+8. Mulai pemilihan.
+
+Jangan mengubah struktur database ketika pemilihan sedang berlangsung.
+
+============================================================
+33. ACCEPTANCE CRITERIA - LOGIN PEMILIH
+============================================================
+
+AC-01: Pemilih dapat memasukkan NISN.
+AC-02: NISN tidak terdaftar ditolak.
+AC-03: NISN yang sudah voting ditolak.
+AC-04: NISN valid dan belum voting dapat masuk.
+AC-05: Query menggunakan parameterized query.
+
+============================================================
+34. ACCEPTANCE CRITERIA - VOTING
+============================================================
+
+AC-06: Sistem menampilkan paslon aktif.
+AC-07: Foto paslon tampil.
+AC-08: Visi dan misi tampil.
+AC-09: Pemilih hanya dapat memilih satu paslon.
+AC-10: Sistem meminta konfirmasi.
+AC-11: Suara tersimpan setelah konfirmasi.
+AC-12: Status pemilih berubah menjadi sudah memilih.
+AC-13: Session pemilih dihentikan setelah voting.
+AC-14: Pemilih dikembalikan ke halaman login.
+
+============================================================
+35. ACCEPTANCE CRITERIA - ADMIN
+============================================================
+
+AC-15: Admin dapat login.
+AC-16: Admin dapat menambahkan paslon.
+AC-17: Admin dapat mengubah paslon.
+AC-18: Admin dapat menghapus/menonaktifkan paslon.
+AC-19: Admin dapat import Excel.
+AC-20: Data Excel divalidasi sebelum masuk database.
+AC-21: Admin dapat melihat jumlah pemilih.
+AC-22: Admin dapat melihat jumlah yang sudah memilih.
+
+============================================================
+36. ACCEPTANCE CRITERIA - STATISTIK
+============================================================
+
+AC-23: Statistik berasal dari database.
+AC-24: Total suara sesuai database.
+AC-25: Jumlah suara Paslon 1 benar.
+AC-26: Jumlah suara Paslon 2 benar.
+AC-27: Jumlah sudah/belum memilih benar.
+
+============================================================
+37. ACCEPTANCE CRITERIA - HASIL
+============================================================
+
+AC-28: Hasil tidak dapat dibuka tanpa kode akses.
+AC-29: Kode akses tidak disimpan plaintext.
+AC-30: Kode salah ditolak.
+AC-31: Kode benar membuka proses hasil.
+AC-32: Countdown berlangsung 60 detik.
+AC-33: Hasil baru ditampilkan setelah countdown.
+AC-34: Jumlah suara sesuai database.
+
+============================================================
+38. SECURITY ACCEPTANCE CRITERIA
+============================================================
+
+SEC-01: Semua query database menggunakan parameterized query.
+SEC-02: Password admin menggunakan password hashing.
+SEC-03: Kode hasil menggunakan password hashing.
+SEC-04: CSRF protection diterapkan.
+SEC-05: Session diregenerasi setelah login.
+SEC-06: Upload file divalidasi.
+SEC-07: Upload foto divalidasi.
+SEC-08: XSS prevention menggunakan output escaping.
+SEC-09: Voting menggunakan database transaction.
+SEC-10: Database tidak berada di client.
+SEC-11: Hak akses admin dan pemilih dipisahkan.
+SEC-12: Semua perangkat menggunakan server yang sama.
+SEC-13: Backup database tersedia sebelum pemilihan.
+SEC-14: HTTPS digunakan jika infrastruktur memungkinkan.
+
+============================================================
+39. NON-FUNCTIONAL REQUIREMENTS
+============================================================
+
+Performance target pada jaringan lokal normal:
+- Login < 2 detik
+- Voting < 2 detik
+- Dashboard < 3 detik
+- Statistik < 3 detik
+
+Availability:
+- Sistem dapat digunakan minimal 8 client bersamaan.
+
+Usability:
+- Proses voting dirancang dapat selesai sekitar 30-60 detik,
+  tidak termasuk countdown hasil akhir.
+
+============================================================
+40. PRIORITAS PENGEMBANGAN
+============================================================
+
+PHASE 1 - FOUNDATION
+- PHP
+- MySQL
+- MVC
+- Bootstrap
+- Database
+- Routing
+
+PHASE 2 - ADMIN
+- Login Admin
+- Data Siswa
+- Import Excel
+- Data Paslon
+
+PHASE 3 - PEMILIH
+- Login NISN
+- Validasi
+- Halaman Paslon
+- Voting
+- Logout
+
+PHASE 4 - STATISTIK
+- Dashboard
+- Total Pemilih
+- Jumlah Voting
+- Grafik
+
+PHASE 5 - HASIL
+- Kode Akses
+- Countdown 60 detik
+- Hasil Paslon 1 dan 2
+
+PHASE 6 - SECURITY & TESTING
+- SQL Injection Test
+- CSRF Test
+- Session Test
+- Double Voting Test
+- Concurrent Voting Test
+- Excel Test
+- 8 Device Test
+- Backup/Restore Test
+
+============================================================
+41. DEFINITION OF DONE
+============================================================
+
+[ ] PHP berjalan.
+[ ] MySQL berjalan.
+[ ] MVC diterapkan.
+[ ] Bootstrap diterapkan.
+[ ] Paper Card UI selesai.
+[ ] Admin login berfungsi.
+[ ] Import Excel berfungsi.
+[ ] Data siswa masuk database.
+[ ] CRUD paslon berfungsi.
+[ ] Foto paslon tampil.
+[ ] Login NISN berfungsi.
+[ ] Pemilih hanya bisa voting sekali.
+[ ] Voting tersimpan.
+[ ] Pemilih otomatis logout.
+[ ] Statistik benar.
+[ ] Hasil terlindungi kode akses.
+[ ] Countdown 60 detik berfungsi.
+[ ] Hasil Paslon 1 dan 2 benar.
+[ ] Parameterized query diterapkan.
+[ ] CSRF diterapkan.
+[ ] Password hashing diterapkan.
+[ ] Upload divalidasi.
+[ ] Transaction voting diterapkan.
+[ ] Sistem dites pada 4 tablet + 4 laptop.
+[ ] Backup database tersedia.
+
+============================================================
+END OF PRD
+============================================================
