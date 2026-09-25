@@ -1,94 +1,102 @@
 <?php
 use App\Core\Security;
+
+$candidateCount = count($candidates);
 ?>
 
-<div class="row mb-4 align-items-center">
-    <div class="col-md-8 d-flex align-items-center gap-3">
-        <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 58px; width: auto; object-fit: contain;" class="d-none d-sm-block">
-        <div>
-            <h2 class="fw-bold mb-1">Surat Suara Digital</h2>
-            <p class="text-muted mb-0">
-                Tentukan pilihan Anda dengan cermat. Klik tombol <strong>PILIH PASLON</strong> untuk memberikan suara.
-            </p>
-        </div>
-    </div>
-    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        <div class="p-2 px-3 bg-white border rounded-pill d-inline-block shadow-sm">
-            <span class="text-muted small">Pemilih:</span>
-            <strong class="text-primary"><?= Security::escape($voter['nama']) ?></strong>
-            <span class="badge bg-secondary ms-1"><?= Security::escape($voter['kelas']) ?></span>
-        </div>
-    </div>
-</div>
+<script>
+document.body.classList.add('ballot-kiosk-active');
+</script>
 
-<?php if (empty($candidates)): ?>
-    <div class="paper-card p-5 text-center my-5">
-        <i class="bi bi-exclamation-circle text-warning display-4 mb-3"></i>
-        <h4>Belum Ada Pasangan Calon Aktif</h4>
-        <p class="text-muted">Panitia belum mengaktifkan data pasangan calon pemilihan.</p>
-    </div>
-<?php else: ?>
-    <div class="row g-4 justify-content-center">
-        <?php foreach ($candidates as $cand): ?>
-            <div class="col-md-6 col-lg-6">
-                <div class="paper-card paper-card-hover h-100 d-flex flex-column">
+<div class="ballot-kiosk-wrapper">
+    <!-- 1. Header Kiosk Surat Suara -->
+    <header class="ballot-kiosk-header">
+        <div class="d-flex align-items-center gap-2.5">
+            <img src="/assets/images/Logo_OSIS.svg" alt="OSIS" style="height: 38px; width: auto; object-fit: contain;">
+            <div>
+                <h4 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem; letter-spacing: -0.01em;">Surat Suara Digital</h4>
+                <small class="text-muted d-block" style="font-size: 0.76rem;">
+                    Pemilihan Ketua &amp; Wakil Ketua OSIS Periode 2026/2027
+                </small>
+            </div>
+        </div>
+
+        <div class="d-none d-lg-flex align-items-center gap-2 px-3 py-1 bg-white border rounded-pill shadow-xs">
+            <i class="bi bi-info-circle-fill text-primary"></i>
+            <span class="small text-muted">Sentuh atau klik tombol <strong>PILIH PASLON</strong> untuk memberikan hak suara Anda</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <div class="p-1.5 px-3 bg-white border rounded-pill shadow-xs d-flex align-items-center gap-2">
+                <span class="text-muted small">Pemilih:</span>
+                <strong class="text-dark small text-truncate" style="max-width: 180px;"><?= Security::escape($voter['nama']) ?></strong>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.72rem;"><?= Security::escape($voter['kelas']) ?></span>
+            </div>
+
+            <!-- Tombol Layar Penuh Bilik Suara -->
+            <button type="button" id="btnToggleBallotFS" class="btn btn-sm btn-paper-secondary shadow-xs px-2.5" title="Mode Layar Penuh Bilik Suara">
+                <i class="bi bi-arrows-fullscreen" id="ballotFsIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 2. Area Paslon (Mengisi Seluruh Sisa Layar Tanpa Scroll) -->
+    <?php if (empty($candidates)): ?>
+        <div class="paper-card p-5 text-center my-auto mx-auto shadow-sm" style="max-width: 500px;">
+            <i class="bi bi-exclamation-circle text-warning display-4 mb-3"></i>
+            <h4 class="fw-bold">Belum Ada Pasangan Calon</h4>
+            <p class="text-muted mb-0">Panitia belum mengaktifkan data pasangan calon pemilihan.</p>
+        </div>
+    <?php else: ?>
+        <div class="ballot-candidates-grid" style="--cand-count: <?= max(1, $candidateCount) ?>;">
+            <?php foreach ($candidates as $cand): ?>
+                <div class="ballot-card">
                     <!-- Card Top Header -->
-                    <div class="paper-card-header d-flex justify-content-between align-items-center">
-                        <span class="text-uppercase small tracking-wide text-muted">Pasangan Calon</span>
+                    <div class="ballot-card-header">
+                        <span class="text-uppercase fw-bold text-secondary tracking-wide" style="font-size: 0.78rem;">
+                            Pasangan Calon
+                        </span>
                         <div class="paslon-badge">
                             0<?= Security::escape($cand['nomor_urut']) ?>
                         </div>
                     </div>
 
-                    <div class="p-4 d-flex flex-column flex-grow-1">
+                    <!-- Card Body -->
+                    <div class="ballot-card-body">
                         <!-- Candidate Photo -->
-                        <div class="candidate-photo-wrapper mb-3">
+                        <div class="ballot-photo-box">
                             <?php if (!empty($cand['foto'])): ?>
-                                <img src="<?= Security::escape($cand['foto']) ?>" alt="Paslon <?= Security::escape($cand['nomor_urut']) ?>" class="candidate-photo">
+                                <img src="<?= Security::escape($cand['foto']) ?>" alt="Paslon 0<?= Security::escape($cand['nomor_urut']) ?>">
                             <?php else: ?>
-                                <div class="text-center text-muted">
-                                    <i class="bi bi-people display-1"></i>
-                                    <div class="small mt-2">Foto Belum Tersedia</div>
+                                <div class="ballot-photo-placeholder">
+                                    <i class="bi bi-people-fill display-4 mb-1"></i>
+                                    <span class="small fw-semibold">Foto Paslon 0<?= Security::escape($cand['nomor_urut']) ?></span>
                                 </div>
                             <?php endif; ?>
                         </div>
 
                         <!-- Candidate Names -->
-                        <div class="text-center mb-3">
-                            <h4 class="fw-bold mb-1"><?= Security::escape($cand['nama_ketua']) ?></h4>
-                            <div class="badge bg-light text-secondary border mb-2">
-                                Calon Ketua &bull; <?= Security::escape($cand['jurusan_ketua']) ?>
-                            </div>
-                            <h5 class="fw-semibold text-secondary mb-1"><?= Security::escape($cand['nama_wakil']) ?></h5>
-                            <div class="badge bg-light text-secondary border">
-                                Calon Wakil &bull; <?= Security::escape($cand['jurusan_wakil']) ?>
-                            </div>
+                        <div class="ballot-names-box">
+                            <div class="cand-ketua-name"><?= Security::escape($cand['nama_ketua']) ?></div>
+                            <div class="cand-ketua-role">Calon Ketua &bull; <?= Security::escape($cand['jurusan_ketua']) ?></div>
+                            
+                            <div class="cand-wakil-name mt-1"><?= Security::escape($cand['nama_wakil']) ?></div>
+                            <div class="cand-wakil-role">Calon Wakil &bull; <?= Security::escape($cand['jurusan_wakil']) ?></div>
                         </div>
 
-                        <hr class="my-3 text-muted">
-
-                        <!-- Visi & Misi Accordion / Content -->
-                        <div class="mb-4 flex-grow-1">
-                            <h6 class="fw-bold text-dark text-uppercase small mb-2">
-                                <i class="bi bi-lightbulb text-warning me-1"></i> Visi
-                            </h6>
-                            <p class="small text-muted mb-3 bg-light p-3 rounded border">
-                                <?= nl2br(Security::escape($cand['visi'])) ?>
-                            </p>
-
-                            <h6 class="fw-bold text-dark text-uppercase small mb-2">
-                                <i class="bi bi-check2-circle text-success me-1"></i> Misi
-                            </h6>
-                            <div class="small text-muted bg-light p-3 rounded border">
-                                <?= nl2br(Security::escape($cand['misi'])) ?>
-                            </div>
-                        </div>
-
-                        <!-- Action Button -->
-                        <div class="mt-auto pt-2">
+                        <!-- Action Buttons -->
+                        <div class="ballot-actions-box">
                             <button 
                                 type="button" 
-                                class="btn btn-paper-vote w-100 py-3 btn-vote-action" 
+                                class="btn btn-sm btn-outline-secondary w-100 py-1.5 rounded-3 btn-view-vision"
+                                data-candidate-id="<?= (int)$cand['id'] ?>"
+                            >
+                                <i class="bi bi-file-text me-1"></i> Visi &amp; Misi Paslon 0<?= Security::escape($cand['nomor_urut']) ?>
+                            </button>
+
+                            <button 
+                                type="button" 
+                                class="btn btn-paper-vote-kiosk w-100 py-2.5 py-xl-3 fs-5 btn-vote-action" 
                                 data-candidate-id="<?= (int)$cand['id'] ?>"
                                 data-candidate-number="0<?= Security::escape($cand['nomor_urut']) ?>"
                                 data-candidate-names="<?= Security::escape($cand['nama_ketua'] . ' & ' . $cand['nama_wakil']) ?>"
@@ -98,10 +106,10 @@ use App\Core\Security;
                         </div>
                     </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
 
 <!-- Form Submit Suara Pemilih -->
 <form action="/vote/submit" method="POST" id="voteForm" class="d-none">
@@ -111,6 +119,71 @@ use App\Core\Security;
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const candidatesData = <?= json_encode($candidates, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?> || [];
+
+    // 1. Modal Lihat Visi & Misi Paslon
+    document.querySelectorAll('.btn-view-vision').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const candId = btn.getAttribute('data-candidate-id');
+            const cand = candidatesData.find(c => c.id == candId);
+            if (!cand) return;
+
+            const num = '0' + cand.nomor_urut;
+            const names = cand.nama_ketua + ' & ' + cand.nama_wakil;
+            const visi = cand.visi || 'Belum diisi';
+            const misi = cand.misi || 'Belum diisi';
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            const formattedVisi = escapeHtml(visi).replace(/\n/g, '<br>');
+            const formattedMisi = escapeHtml(misi).replace(/\n/g, '<br>');
+
+            if (window.SwalPaper) {
+                window.SwalPaper.fire({
+                    title: `Visi & Misi Paslon ${num}`,
+                    html: `
+                        <div class="text-start py-2">
+                            <div class="text-center mb-3">
+                                <div class="paslon-badge mb-2 mx-auto" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                    ${num}
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">${escapeHtml(names)}</h5>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-uppercase small text-secondary mb-1">
+                                    <i class="bi bi-lightbulb-fill text-warning me-1"></i> Visi
+                                </h6>
+                                <div class="p-3 bg-light rounded-3 border small text-muted">
+                                    ${formattedVisi}
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-uppercase small text-secondary mb-1">
+                                    <i class="bi bi-check2-circle text-success me-1"></i> Misi
+                                </h6>
+                                <div class="p-3 bg-light rounded-3 border small text-muted" style="max-height: 220px; overflow-y: auto;">
+                                    ${formattedMisi}
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        popup: 'paper-swal-popup',
+                        confirmButton: 'swal2-confirm btn-paper-primary px-4'
+                    }
+                });
+            } else {
+                alert(`Visi & Misi Paslon ${num} (${names}):\n\nVISI:\n${visi}\n\nMISI:\n${misi}`);
+            }
+        });
+    });
+
+    // 2. Tombol Konfirmasi Pilihan Suara
     document.querySelectorAll('.btn-vote-action').forEach(btn => {
         btn.addEventListener('click', () => {
             const candidateId = btn.getAttribute('data-candidate-id');
@@ -157,5 +230,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // 3. Toggle Fullscreen Native Kiosk Bilik Suara
+    const btnFS = document.getElementById('btnToggleBallotFS');
+    const fsIcon = document.getElementById('ballotFsIcon');
+
+    function updateBallotFSIcon() {
+        if (!fsIcon) return;
+        if (document.fullscreenElement) {
+            fsIcon.className = 'bi bi-fullscreen-exit';
+        } else {
+            fsIcon.className = 'bi bi-arrows-fullscreen';
+        }
+    }
+
+    if (btnFS) {
+        btnFS.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+        });
+    }
+
+    document.addEventListener('fullscreenchange', updateBallotFSIcon);
 });
 </script>
