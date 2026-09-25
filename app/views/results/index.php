@@ -2,34 +2,43 @@
 use App\Core\Security;
 ?>
 
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <div>
-                <h2 class="fw-bold mb-1">Hasil Perolehan Suara</h2>
-                <p class="text-muted mb-0">Rapat Pleno & Pengumuman Hasil Pemilihan Ketua OSIS</p>
+<div id="resultsMainContainer" class="results-fullscreen-wrapper">
+    <div class="row justify-content-center w-100 m-0">
+        <div class="col-lg-11 col-xl-10 p-0">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2.5">
+                    <img src="/assets/images/Logo_OSIS.svg" alt="OSIS" style="height: 36px; width: auto; object-fit: contain;">
+                    <div>
+                        <h3 class="fw-bold mb-0 text-dark">Hasil Perolehan Suara</h3>
+                        <p class="text-muted small mb-0">Rapat Pleno & Pengumuman Resmi Pemilihan Ketua OSIS</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <?php if ($isUnlocked): ?>
+                        <form action="/admin/results/lock" method="POST" class="d-inline m-0" id="formLockResults">
+                            <?= Security::csrfField() ?>
+                            <input type="hidden" name="is_fullscreen" id="lockIsFullscreen" value="0">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Kunci kembali hasil dan kembali ke pemantauan">
+                                <i class="bi bi-lock me-1"></i> Kunci Kembali
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                    <a href="/admin/monitoring" id="btnBackToMonitoring" class="btn btn-sm btn-paper-secondary" title="Kembali ke Halaman Pemantauan Suara">
+                        <i class="bi bi-broadcast me-1"></i> Pantau Suara
+                    </a>
+                    <a href="/admin/dashboard" id="btnBackToDashboard" class="btn btn-sm btn-paper-secondary" title="Kembali ke Dashboard">
+                        <i class="bi bi-arrow-left me-1"></i> Dashboard
+                    </a>
+                    <button type="button" id="btnToggleFullscreen" class="btn btn-sm btn-paper-primary fw-bold shadow-sm" title="Mode Layar Penuh (Presentasi Rapat Pleno)">
+                        <i class="bi bi-arrows-fullscreen me-1" id="fsIcon"></i>
+                        <span id="fsText">Layar Penuh</span>
+                    </button>
+                </div>
             </div>
-            <div>
-                <?php if ($isUnlocked): ?>
-                    <form action="/admin/results/lock" method="POST" class="d-inline">
-                        <?= Security::csrfField() ?>
-                        <button type="submit" class="btn btn-sm btn-outline-danger me-1">
-                            <i class="bi bi-lock me-1"></i> Kunci Kembali
-                        </button>
-                    </form>
-                <?php endif; ?>
-                <a href="/admin/monitoring" class="btn btn-sm btn-paper-primary me-1">
-                    <i class="bi bi-broadcast me-1"></i> Pantau Suara
-                </a>
-                <a href="/admin/dashboard" class="btn btn-sm btn-paper-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Dashboard
-                </a>
-            </div>
-        </div>
 
         <?php if (!$isUnlocked): ?>
             <!-- FORM INPUT KODE AKSES HASIL -->
-            <div class="row justify-content-center py-4">
+            <div class="row justify-content-center py-4 my-auto w-100" id="lockedResultsBox">
                 <div class="col-md-6 col-lg-5">
                     <div class="paper-card p-4 p-md-5 text-center shadow-sm">
                         <div class="mb-3">
@@ -40,8 +49,9 @@ use App\Core\Security;
                             Untuk menjaga kerahasiaan suara pemilih, masukkan kode akses resmi panitia untuk membuka hasil perolehan suara paslon.
                         </p>
 
-                        <form action="/admin/results/unlock" method="POST">
+                        <form action="/admin/results/unlock" method="POST" id="formResultsUnlock">
                             <?= Security::csrfField() ?>
+                            <input type="hidden" name="is_fullscreen" id="resultsUnlockIsFullscreen" value="0">
 
                             <div class="mb-4">
                                 <label for="access_code" class="form-label fw-bold small text-uppercase text-secondary">
@@ -68,7 +78,7 @@ use App\Core\Security;
                             </div>
 
                             <div class="pt-3 border-top">
-                                <a href="/admin/monitoring" class="btn btn-sm btn-outline-primary w-100">
+                                <a href="/admin/monitoring" id="linkLockedBackToMonitoring" class="btn btn-sm btn-outline-primary w-100">
                                     <i class="bi bi-broadcast me-1"></i> Masuk ke Halaman Pemantauan Suara (Live)
                                 </a>
                             </div>
@@ -148,129 +158,274 @@ use App\Core\Security;
                     </button>
                 </div>
             </div>
-
-            <script>
-            let timerSeconds = 60;
-            let timerInterval = null;
-
-            function startCountdown() {
-                const timerDisplay = document.getElementById('timerDisplay');
-                const countdownBar = document.getElementById('countdownBar');
-
-                timerSeconds = 60;
-                timerDisplay.textContent = timerSeconds;
-                countdownBar.style.width = '100%';
-
-                if (timerInterval) clearInterval(timerInterval);
-
-                timerInterval = setInterval(() => {
-                    timerSeconds--;
-                    timerDisplay.textContent = timerSeconds;
-                    const percent = (timerSeconds / 60) * 100;
-                    countdownBar.style.width = percent + '%';
-
-                    if (timerSeconds <= 0) {
-                        clearInterval(timerInterval);
-                        revealResults();
-                    }
-                }, 1000);
-            }
-
-            function revealResults() {
-                document.getElementById('countdownContainer').style.display = 'none';
-                document.getElementById('resultsContainer').style.display = 'block';
-                fetchResultsData();
-            }
-
-            function restartCountdown() {
-                document.getElementById('resultsContainer').style.display = 'none';
-                document.getElementById('countdownContainer').style.display = 'block';
-                startCountdown();
-            }
-
-            document.getElementById('btnSkipCountdown').addEventListener('click', () => {
-                if (timerInterval) clearInterval(timerInterval);
-                revealResults();
-            });
-
-            async function fetchResultsData() {
-                try {
-                    const response = await fetch('/admin/results/data');
-                    const data = await response.json();
-
-                    if (!data.success) {
-                        if (window.PaperAlert) {
-                            window.PaperAlert.error(data.error || 'Gagal memuat data hasil.', 'Gagal Memuat Hasil');
-                        } else {
-                            alert(data.error || 'Gagal memuat data hasil.');
-                        }
-                        return;
-                    }
-
-                    document.getElementById('resTotalVoters').textContent = data.total_voters.toLocaleString('id-ID');
-                    document.getElementById('resTotalVotes').textContent = data.total_votes.toLocaleString('id-ID');
-                    const part = data.total_voters > 0 ? ((data.total_votes / data.total_voters) * 100).toFixed(1) : 0;
-                    document.getElementById('resParticipation').textContent = part + '%';
-
-                    const container = document.getElementById('candidateResultsList');
-                    container.innerHTML = '';
-
-                    const totalSuara = data.total_votes;
-                    
-                    // Cari suara terbanyak
-                    let maxSuara = -1;
-                    data.candidates.forEach(c => {
-                        const s = parseInt(c.total_suara) || 0;
-                        if (s > maxSuara) maxSuara = s;
-                    });
-
-                    data.candidates.forEach(cand => {
-                        const suara = parseInt(cand.total_suara) || 0;
-                        const persentase = totalSuara > 0 ? ((suara / totalSuara) * 100).toFixed(1) : 0;
-                        const isLeading = suara > 0 && suara === maxSuara;
-
-                        const col = document.createElement('div');
-                        col.className = 'col-md-6 col-lg-6';
-
-                        col.innerHTML = `
-                            <div class="paper-card h-100 p-4 border-2 ${isLeading ? 'border-primary shadow' : ''}">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div class="paslon-badge">0${cand.nomor_urut}</div>
-                                    ${isLeading ? '<span class="badge bg-warning text-dark fs-6 px-3 py-1"><i class="bi bi-trophy-fill me-1"></i> Suara Terbanyak</span>' : ''}
-                                </div>
-                                <div class="text-center mb-3">
-                                    ${cand.foto ? `<img src="${cand.foto}" class="img-fluid rounded mb-3 border" style="max-height: 180px; object-fit: cover;">` : ''}
-                                    <h4 class="fw-bold mb-1">${cand.nama_ketua}</h4>
-                                    <h5 class="fw-semibold text-secondary mb-3">& ${cand.nama_wakil}</h5>
-                                </div>
-
-                                <div class="bg-light p-3 rounded border text-center mb-3">
-                                    <div class="text-muted small text-uppercase">Perolehan Suara</div>
-                                    <div class="display-5 fw-bold text-primary">${suara.toLocaleString('id-ID')}</div>
-                                    <div class="fw-semibold text-muted">${persentase}% dari total suara sah</div>
-                                </div>
-
-                                <div class="progress" style="height: 12px;">
-                                    <div class="progress-bar ${isLeading ? 'bg-primary' : 'bg-secondary'}" role="progressbar" style="width: ${persentase}%"></div>
-                                </div>
-                            </div>
-                        `;
-
-                        container.appendChild(col);
-                    });
-
-                } catch (e) {
-                    console.error('Error fetching results:', e);
-                    if (window.PaperAlert) {
-                        window.PaperAlert.error('Terjadi gangguan jaringan saat mengambil data hasil pemilihan dari server.', 'Koneksi Terputus');
-                    }
-                }
-            }
-
-            document.addEventListener('DOMContentLoaded', () => {
-                startCountdown();
-            });
-            </script>
         <?php endif; ?>
     </div>
 </div>
+</div>
+
+<!-- Script Engine untuk Halaman Hasil Pleno -->
+<script>
+window.initResultsView = function() {
+    // 0. Cleanup previous timers
+    if (typeof window._cleanupCurrentView === 'function') {
+        window._cleanupCurrentView();
+        window._cleanupCurrentView = null;
+    }
+
+    const isUnlocked = <?= $isUnlocked ? 'true' : 'false' ?>;
+
+    if (isUnlocked) {
+        let timerSeconds = 60;
+        let timerInterval = null;
+
+        function startCountdown() {
+            const timerDisplay = document.getElementById('timerDisplay');
+            const countdownBar = document.getElementById('countdownBar');
+            if (!timerDisplay || !countdownBar) return;
+
+            timerSeconds = 60;
+            timerDisplay.textContent = timerSeconds;
+            countdownBar.style.width = '100%';
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                if (timerDisplay) timerDisplay.textContent = timerSeconds;
+                const percent = (timerSeconds / 60) * 100;
+                if (countdownBar) countdownBar.style.width = percent + '%';
+
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    revealResults();
+                }
+            }, 1000);
+            window._resultsCountdownTimer = timerInterval;
+        }
+
+        function revealResults() {
+            const cBox = document.getElementById('countdownContainer');
+            const rBox = document.getElementById('resultsContainer');
+            if (cBox) cBox.style.display = 'none';
+            if (rBox) rBox.style.display = 'block';
+            fetchResultsData();
+        }
+
+        window.restartCountdown = function() {
+            const cBox = document.getElementById('countdownContainer');
+            const rBox = document.getElementById('resultsContainer');
+            if (rBox) rBox.style.display = 'none';
+            if (cBox) cBox.style.display = 'block';
+            startCountdown();
+        };
+
+        const btnSkip = document.getElementById('btnSkipCountdown');
+        if (btnSkip) {
+            btnSkip.onclick = () => {
+                if (timerInterval) clearInterval(timerInterval);
+                revealResults();
+            };
+        }
+
+        async function fetchResultsData() {
+            try {
+                const response = await fetch('/admin/results/data');
+                const data = await response.json();
+
+                if (!data.success) {
+                    if (window.PaperAlert) {
+                        window.PaperAlert.error(data.error || 'Gagal memuat data hasil.', 'Gagal Memuat Hasil');
+                    } else {
+                        alert(data.error || 'Gagal memuat data hasil.');
+                    }
+                    return;
+                }
+
+                const resTotalVoters = document.getElementById('resTotalVoters');
+                const resTotalVotes = document.getElementById('resTotalVotes');
+                const resPart = document.getElementById('resParticipation');
+                if (resTotalVoters) resTotalVoters.textContent = data.total_voters.toLocaleString('id-ID');
+                if (resTotalVotes) resTotalVotes.textContent = data.total_votes.toLocaleString('id-ID');
+                const part = data.total_voters > 0 ? ((data.total_votes / data.total_voters) * 100).toFixed(1) : 0;
+                if (resPart) resPart.textContent = part + '%';
+
+                const container = document.getElementById('candidateResultsList');
+                if (!container) return;
+                container.innerHTML = '';
+
+                const totalSuara = data.total_votes;
+                let maxSuara = -1;
+                data.candidates.forEach(c => {
+                    const s = parseInt(c.total_suara) || 0;
+                    if (s > maxSuara) maxSuara = s;
+                });
+
+                data.candidates.forEach(cand => {
+                    const suara = parseInt(cand.total_suara) || 0;
+                    const persentase = totalSuara > 0 ? ((suara / totalSuara) * 100).toFixed(1) : 0;
+                    const isLeading = suara > 0 && suara === maxSuara;
+
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6 col-lg-6';
+                    col.innerHTML = `
+                        <div class="paper-card h-100 p-4 border-2 ${isLeading ? 'border-primary shadow' : ''}">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="paslon-badge">0${cand.nomor_urut}</div>
+                                ${isLeading ? '<span class="badge bg-warning text-dark fs-6 px-3 py-1"><i class="bi bi-trophy-fill me-1"></i> Suara Terbanyak</span>' : ''}
+                            </div>
+                            <div class="text-center mb-3">
+                                ${cand.foto ? `<img src="${cand.foto}" class="img-fluid rounded mb-3 border" style="max-height: 180px; object-fit: cover;">` : ''}
+                                <h4 class="fw-bold mb-1">${cand.nama_ketua}</h4>
+                                <h5 class="fw-semibold text-secondary mb-3">& ${cand.nama_wakil}</h5>
+                            </div>
+                            <div class="bg-light p-3 rounded border text-center mb-3">
+                                <div class="text-muted small text-uppercase">Perolehan Suara</div>
+                                <div class="display-5 fw-bold text-primary">${suara.toLocaleString('id-ID')}</div>
+                                <div class="fw-semibold text-muted">${persentase}% dari total suara sah</div>
+                            </div>
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar ${isLeading ? 'bg-primary' : 'bg-secondary'}" role="progressbar" style="width: ${persentase}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(col);
+                });
+            } catch (e) {
+                console.error('Error fetching results:', e);
+                if (window.PaperAlert) {
+                    window.PaperAlert.error('Terjadi gangguan jaringan saat mengambil data hasil pemilihan.', 'Koneksi Terputus');
+                }
+            }
+        }
+
+        // Jalankan countdown saat view dibuka
+        startCountdown();
+
+        // Lock form submit interception
+        const formLock = document.getElementById('formLockResults');
+        if (formLock) {
+            formLock.onsubmit = async (e) => {
+                const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+                if (!isFS) return;
+                e.preventDefault();
+
+                try {
+                    const formData = new FormData(formLock);
+                    formData.set('is_fullscreen', '1');
+
+                    const res = await fetch('/admin/results/lock', {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (window.seamlessNavigate) {
+                        window.seamlessNavigate(data.redirect || '/admin/monitoring');
+                    } else {
+                        window.location.href = data.redirect || '/admin/monitoring';
+                    }
+                } catch (err) {
+                    formLock.submit();
+                }
+            };
+        }
+    } else {
+        // Locked results view
+        const formResultsUnlock = document.getElementById('formResultsUnlock');
+        if (formResultsUnlock) {
+            formResultsUnlock.onsubmit = async (e) => {
+                const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+                if (!isFS) return;
+                e.preventDefault();
+
+                try {
+                    const formData = new FormData(formResultsUnlock);
+                    formData.set('is_fullscreen', '1');
+
+                    const res = await fetch('/admin/results/unlock', {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (window.seamlessNavigate) {
+                            window.seamlessNavigate(data.redirect || '/admin/results');
+                        } else {
+                            window.location.href = data.redirect || '/admin/results';
+                        }
+                    } else {
+                        if (window.PaperAlert) {
+                            window.PaperAlert.error(data.error || 'Kode akses salah.', 'Akses Ditolak');
+                        } else {
+                            alert(data.error || 'Kode akses salah.');
+                        }
+                    }
+                } catch (err) {
+                    formResultsUnlock.submit();
+                }
+            };
+        }
+
+        const linkLocked = document.getElementById('linkLockedBackToMonitoring');
+        if (linkLocked) {
+            linkLocked.onclick = (e) => {
+                const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+                if (isFS && window.seamlessNavigate) {
+                    e.preventDefault();
+                    window.seamlessNavigate('/admin/monitoring');
+                }
+            };
+        }
+    }
+
+    // Navigation buttons
+    const btnBackMonitoring = document.getElementById('btnBackToMonitoring');
+    if (btnBackMonitoring) {
+        btnBackMonitoring.onclick = (e) => {
+            const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+            if (isFS && window.seamlessNavigate) {
+                e.preventDefault();
+                window.seamlessNavigate('/admin/monitoring');
+            }
+        };
+    }
+
+    const btnDashboard = document.getElementById('btnBackToDashboard');
+    if (btnDashboard) {
+        btnDashboard.onclick = () => {
+            try { sessionStorage.removeItem('evoting_fullscreen'); } catch (e) {}
+        };
+    }
+
+    const btnFullscreen = document.getElementById('btnToggleFullscreen');
+    if (btnFullscreen) {
+        btnFullscreen.onclick = () => {
+            if (window.toggleEvotingFullscreen) {
+                window.toggleEvotingFullscreen();
+            }
+        };
+    }
+
+    // Cleanup hook
+    window._cleanupCurrentView = () => {
+        if (window._resultsCountdownTimer) {
+            clearInterval(window._resultsCountdownTimer);
+            window._resultsCountdownTimer = null;
+        }
+    };
+
+    // Update fullscreen UI status
+    const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+    if (window.setEvotingFullscreenUI) {
+        window.setEvotingFullscreenUI(isFS);
+    }
+};
+
+// Initial run
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initResultsView);
+} else {
+    window.initResultsView();
+}
+</script>

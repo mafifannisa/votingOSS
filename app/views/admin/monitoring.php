@@ -49,7 +49,7 @@ use App\Core\Security;
 
             <!-- Tombol Buka Hasil Rapat Pleno -->
             <?php if ($isUnlocked): ?>
-                <a href="/admin/results" class="btn btn-sm btn-warning text-dark fw-bold px-2.5 shadow-sm" title="Hasil Pemilihan Sudah Terbuka">
+                <a href="/admin/results" id="btnGoToResults" class="btn btn-sm btn-warning text-dark fw-bold px-2.5 shadow-sm" title="Hasil Pemilihan Sudah Terbuka">
                     <i class="bi bi-trophy-fill me-1"></i> Hasil Pleno
                 </a>
             <?php else: ?>
@@ -199,9 +199,10 @@ use App\Core\Security;
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
-            <form method="POST" action="/admin/results/unlock">
+            <form method="POST" action="/admin/results/unlock" id="formUnlockResults">
                 <?= Security::csrfField() ?>
                 <input type="hidden" name="redirect_to" value="/admin/monitoring">
+                <input type="hidden" name="is_fullscreen" id="unlockIsFullscreen" value="0">
                 <div class="modal-body px-4 py-3">
                     <div class="alert alert-warning border-0 small d-flex align-items-start gap-2 mb-3">
                         <i class="bi bi-exclamation-triangle-fill fs-6 mt-0.5 text-warning flex-shrink-0"></i>
@@ -247,15 +248,27 @@ use App\Core\Security;
      CLIENT JAVASCRIPT: FULLSCREEN ENGINE, CHART.JS & LIVE POLLING
      ======================================================================== -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial Class Data from PHP
-    let classStatsData = <?= json_encode($classStats) ?>;
-    let currentChartMode = 'percentage'; // 'percentage' | 'count'
+window._initialClassStats = <?= json_encode($classStats) ?>;
+
+window.initMonitoringView = function() {
+    // 0. Cleanup previous timers or chart instances
+    if (typeof window._cleanupCurrentView === 'function') {
+        window._cleanupCurrentView();
+        window._cleanupCurrentView = null;
+    }
+
+    let classStatsData = window._initialClassStats || [];
+    let currentChartMode = 'percentage';
     let classChart = null;
 
     // 1. Inisialisasi Chart.js untuk Kelas
     const ctx = document.getElementById('classChart');
     if (ctx && typeof Chart !== 'undefined') {
+        if (window._monitoringChart) {
+            window._monitoringChart.destroy();
+            window._monitoringChart = null;
+        }
+
         const labels = classStatsData.map(c => c.kelas);
         const dataRates = classStatsData.map(c => parseFloat(c.rate));
         const colors = dataRates.map(r => r >= 100 ? '#10b981' : (r > 0 ? '#1e3a8a' : '#cbd5e1'));
@@ -276,13 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: {
-                    duration: 500
-                },
+                animation: { duration: 500 },
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         backgroundColor: '#1e293b',
                         titleFont: { size: 13, family: 'Plus Jakarta Sans', weight: 'bold' },
@@ -311,10 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: {
-                            color: '#475569',
-                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }
-                        }
+                        ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
                     },
                     y: {
                         beginAtZero: true,
@@ -323,14 +329,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         ticks: {
                             color: '#64748b',
                             font: { family: 'Plus Jakarta Sans', size: 11 },
-                            callback: function(value) {
-                                return value + '%';
-                            }
+                            callback: function(value) { return value + '%'; }
                         }
                     }
                 }
             }
         });
+
+        window._monitoringChart = classChart;
     }
 
     // Fungsi Render Ulang Chart Berdasarkan Mode
@@ -395,92 +401,93 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Listener Switch Mode Chart
     const btnModePct = document.getElementById('btnModePercentage');
     const btnModeCnt = document.getElementById('btnModeCount');
-
     if (btnModePct && btnModeCnt) {
-        btnModePct.addEventListener('click', () => {
+        btnModePct.onclick = () => {
             btnModePct.classList.add('active');
             btnModeCnt.classList.remove('active');
             renderChartMode('percentage');
-        });
-        btnModeCnt.addEventListener('click', () => {
+        };
+        btnModeCnt.onclick = () => {
             btnModeCnt.classList.add('active');
             btnModePct.classList.remove('active');
             renderChartMode('count');
-        });
+        };
     }
 
-    // 2. FULLSCREEN ENGINE (NATIVE API + FALLBACK RESILIENT)
+    // Fullscreen Button
     const btnFullscreen = document.getElementById('btnToggleFullscreen');
-    const fsIcon = document.getElementById('fsIcon');
-    const fsText = document.getElementById('fsText');
-    const container = document.getElementById('monitoringContainer');
-
-    function updateFullscreenUI(isFullscreen) {
-        if (isFullscreen) {
-            document.body.classList.add('monitoring-fs-active');
-            if (fsIcon) fsIcon.className = 'bi bi-fullscreen-exit me-1';
-            if (fsText) fsText.textContent = 'Keluar Layar';
-            if (btnFullscreen) {
-                btnFullscreen.classList.replace('btn-paper-primary', 'btn-paper-secondary');
+    if (btnFullscreen) {
+        btnFullscreen.onclick = () => {
+            if (window.toggleEvotingFullscreen) {
+                window.toggleEvotingFullscreen();
             }
-        } else {
-            document.body.classList.remove('monitoring-fs-active');
-            if (fsIcon) fsIcon.className = 'bi bi-arrows-fullscreen me-1';
-            if (fsText) fsText.textContent = 'Layar Penuh';
-            if (btnFullscreen) {
-                btnFullscreen.classList.replace('btn-paper-secondary', 'btn-paper-primary');
-            }
-        }
-        // Resize chart to adapt to new container height
-        setTimeout(() => {
-            if (classChart) classChart.resize();
-        }, 150);
+        };
     }
 
-    if (btnFullscreen && container) {
-        btnFullscreen.addEventListener('click', () => {
-            const isCurrentlyFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains('monitoring-fs-active');
+    // Intercept "Hasil Pleno" button for seamless in-page transition
+    const btnGoToResults = document.getElementById('btnGoToResults');
+    if (btnGoToResults) {
+        btnGoToResults.onclick = (e) => {
+            const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+            if (isFS && window.seamlessNavigate) {
+                e.preventDefault();
+                window.seamlessNavigate('/admin/results');
+            }
+        };
+    }
 
-            if (!isCurrentlyFullscreen) {
-                // Request Fullscreen
-                if (container.requestFullscreen) {
-                    container.requestFullscreen().then(() => updateFullscreenUI(true)).catch(() => {
-                        // Fallback jika API ditolak
-                        updateFullscreenUI(true);
-                    });
-                } else if (container.webkitRequestFullscreen) {
-                    container.webkitRequestFullscreen();
-                    updateFullscreenUI(true);
-                } else {
-                    updateFullscreenUI(true);
-                }
-            } else {
-                // Exit Fullscreen
-                if (document.fullscreenElement || document.webkitFullscreenElement) {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen().then(() => updateFullscreenUI(false)).catch(() => updateFullscreenUI(false));
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                        updateFullscreenUI(false);
+    // Intercept Unlock Modal form submit for seamless in-page transition
+    const formUnlock = document.getElementById('formUnlockResults');
+    if (formUnlock) {
+        formUnlock.onsubmit = async (e) => {
+            const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+            if (!isFS) return; // If normal window, default form submit works
+
+            e.preventDefault();
+            const submitBtn = formUnlock.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const formData = new FormData(formUnlock);
+                formData.set('is_fullscreen', '1');
+
+                const res = await fetch('/admin/results/unlock', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const modalEl = document.getElementById('modalUnlockResults');
+                    if (modalEl && typeof bootstrap !== 'undefined') {
+                        const m = bootstrap.Modal.getInstance(modalEl);
+                        if (m) m.hide();
+                    }
+                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                    document.body.classList.remove('modal-open');
+                    document.body.style = '';
+
+                    if (window.seamlessNavigate) {
+                        window.seamlessNavigate(data.redirect || '/admin/results');
+                    } else {
+                        window.location.href = data.redirect || '/admin/results';
                     }
                 } else {
-                    updateFullscreenUI(false);
+                    if (window.PaperAlert) {
+                        window.PaperAlert.error(data.error || 'Kode akses salah.', 'Akses Ditolak');
+                    } else {
+                        alert(data.error || 'Kode akses salah.');
+                    }
                 }
+            } catch (err) {
+                formUnlock.submit();
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
             }
-        });
+        };
     }
 
-    // Event listener sinkronisasi saat fullscreen berubah via ESC keyboard
-    document.addEventListener('fullscreenchange', () => {
-        const isFS = !!document.fullscreenElement;
-        updateFullscreenUI(isFS);
-    });
-    document.addEventListener('webkitfullscreenchange', () => {
-        const isFS = !!document.webkitFullscreenElement;
-        updateFullscreenUI(isFS);
-    });
-
-    // 3. LIVE POLLING REAL-TIME ENGINE (SETIAP 5 DETIK)
+    // Live Polling Engine
     const valTotalVoters = document.getElementById('valTotalVoters');
     const valTotalVoted = document.getElementById('valTotalVoted');
     const valTotalNotVoted = document.getElementById('valTotalNotVoted');
@@ -495,7 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchMonitoringData() {
         if (isFetching) return;
         isFetching = true;
-
         if (refreshIcon) refreshIcon.classList.add('bi-spin');
 
         try {
@@ -506,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    // Update Angka Metrik Utama
                     if (valTotalVoters) valTotalVoters.textContent = new Intl.NumberFormat('id-ID').format(data.total_voters);
                     if (valTotalVoted) valTotalVoted.textContent = new Intl.NumberFormat('id-ID').format(data.total_voted);
                     if (valTotalNotVoted) valTotalNotVoted.textContent = new Intl.NumberFormat('id-ID').format(data.total_not_voted);
@@ -517,9 +522,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (lastUpdated) lastUpdated.textContent = data.updated_at;
 
-                    // Update Data Chart
                     if (data.class_stats && data.class_stats.length > 0) {
                         classStatsData = data.class_stats;
+                        window._initialClassStats = data.class_stats;
                         renderChartMode(currentChartMode);
                     }
                 }
@@ -533,21 +538,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnRefresh) {
-        btnRefresh.addEventListener('click', () => {
-            fetchMonitoringData();
-        });
+        btnRefresh.onclick = () => fetchMonitoringData();
     }
 
     // Auto-polling interval setiap 5 detik
-    setInterval(fetchMonitoringData, 5000);
+    window._monitoringPollingTimer = setInterval(fetchMonitoringData, 5000);
 
-    // 4. Modal Password Toggle
+    // Modal Password Toggle
     const toggleBtn = document.getElementById('btnToggleUnlockCode');
     const inputCode = document.getElementById('modalAccessCode');
     const toggleIcon = document.getElementById('toggleUnlockIcon');
 
     if (toggleBtn && inputCode && toggleIcon) {
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.onclick = () => {
             if (inputCode.type === 'password') {
                 inputCode.type = 'text';
                 toggleIcon.className = 'bi bi-eye-slash';
@@ -555,7 +558,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputCode.type = 'password';
                 toggleIcon.className = 'bi bi-eye';
             }
-        });
+        };
     }
-});
+
+    // Cleanup hook
+    window._cleanupCurrentView = () => {
+        if (window._monitoringPollingTimer) {
+            clearInterval(window._monitoringPollingTimer);
+            window._monitoringPollingTimer = null;
+        }
+        if (window._monitoringChart) {
+            window._monitoringChart.destroy();
+            window._monitoringChart = null;
+        }
+    };
+
+    // Update fullscreen UI status
+    const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+    if (window.setEvotingFullscreenUI) {
+        window.setEvotingFullscreenUI(isFS);
+    }
+};
+
+// Initial run
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initMonitoringView);
+} else {
+    window.initMonitoringView();
+}
 </script>

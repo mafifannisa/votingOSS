@@ -26,6 +26,25 @@ $isVoter = Session::has('voter_id');
     <link rel="stylesheet" href="/assets/css/paper-card.css">
 </head>
 <body class="bg-paper d-flex flex-column min-vh-100">
+    <script>
+        (function() {
+            try {
+                var isFs = sessionStorage.getItem('evoting_fullscreen') === '1' || window.location.search.indexOf('fs=1') !== -1;
+                var path = window.location.pathname;
+                if (isFs) {
+                    if (path.indexOf('/admin/monitoring') !== -1) {
+                        document.body.classList.add('monitoring-fs-active');
+                        sessionStorage.setItem('evoting_fullscreen', '1');
+                    } else if (path.indexOf('/admin/results') !== -1) {
+                        document.body.classList.add('results-fs-active');
+                        sessionStorage.setItem('evoting_fullscreen', '1');
+                    }
+                } else if (path.indexOf('/admin/monitoring') === -1 && path.indexOf('/admin/results') === -1) {
+                    sessionStorage.removeItem('evoting_fullscreen');
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <!-- Paper Navbar -->
     <nav class="navbar navbar-expand-lg navbar-paper py-3 sticky-top">
@@ -140,6 +159,8 @@ $isVoter = Session::has('voter_id');
 
     <!-- SweetAlert2 (Local offline support with CDN fallback) -->
     <script src="/assets/js/sweetalert2.all.min.js"></script>
+    <!-- Chart.js (Local offline support) -->
+    <script src="/assets/js/chart.min.js"></script>
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/app.js"></script>

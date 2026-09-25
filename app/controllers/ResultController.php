@@ -45,27 +45,41 @@ class ResultController extends Controller
         $this->requireAdmin();
         $this->validateCsrf();
 
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || (str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json'));
+
         $redirectTo = !empty($_POST['redirect_to']) && str_starts_with($_POST['redirect_to'], '/admin/') 
             ? $_POST['redirect_to'] 
             : '/admin/results';
 
         $accessCode = trim($_POST['access_code'] ?? '');
+        $isFs = !empty($_POST['is_fullscreen']) ? '?fs=1' : '';
 
         if (empty($accessCode)) {
+            if ($isAjax) {
+                $this->json(['success' => false, 'error' => 'Kode akses tidak boleh kosong.'], 400);
+            }
             Session::setFlash('error', 'Kode akses tidak boleh kosong.');
-            $this->redirect($redirectTo);
+            $this->redirect($redirectTo . $isFs);
         }
 
         if (!$this->electionModel->verifyResultCode($accessCode) && $accessCode !== 'osis2026') {
+            if ($isAjax) {
+                $this->json(['success' => false, 'error' => 'Kode akses salah. Akses ke hasil pemilihan ditolak.'], 401);
+            }
             Session::setFlash('error', 'Kode akses salah. Akses ke hasil pemilihan ditolak.');
-            $this->redirect($redirectTo);
+            $this->redirect($redirectTo . $isFs);
         }
 
         // Simpan status verifikasi di session
         Session::set('results_unlocked', true);
         Session::set('results_unlocked_at', time());
 
-        $this->redirect('/admin/results');
+        if ($isAjax) {
+            $this->json(['success' => true, 'redirect' => '/admin/results' . $isFs]);
+        }
+
+        $this->redirect('/admin/results' . $isFs);
     }
 
     /**
@@ -76,11 +90,20 @@ class ResultController extends Controller
         $this->requireAdmin();
         $this->validateCsrf();
 
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || (str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json'));
+
         Session::remove('results_unlocked');
         Session::remove('results_unlocked_at');
 
+        $isFs = !empty($_POST['is_fullscreen']) ? '?fs=1' : '';
+
+        if ($isAjax) {
+            $this->json(['success' => true, 'redirect' => '/admin/monitoring' . $isFs]);
+        }
+
         Session::setFlash('info', 'Halaman hasil pemilihan telah dikunci kembali. Kotak suara digital tetap aman.');
-        $this->redirect('/admin/monitoring');
+        $this->redirect('/admin/monitoring' . $isFs);
     }
 
     /**

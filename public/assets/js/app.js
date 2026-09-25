@@ -617,3 +617,191 @@ document.addEventListener('DOMContentLoaded', () => {
         window.PaperSelect.initAll();
     }
 });
+
+// ==========================================================================
+// 6. Seamless In-Page Navigation (PJAX) & Persistent True Fullscreen Engine
+// ==========================================================================
+window.toggleEvotingFullscreen = function() {
+    const isFS = !!(
+        document.fullscreenElement || 
+        document.webkitFullscreenElement || 
+        document.body.classList.contains('monitoring-fs-active') || 
+        document.body.classList.contains('results-fs-active')
+    );
+
+    if (!isFS) {
+        const root = document.documentElement;
+        if (root.requestFullscreen) {
+            root.requestFullscreen().catch(() => {});
+        } else if (root.webkitRequestFullscreen) {
+            root.webkitRequestFullscreen();
+        }
+        window.setEvotingFullscreenUI(true);
+    } else {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+        window.setEvotingFullscreenUI(false);
+    }
+};
+
+window.setEvotingFullscreenUI = function(isFS) {
+    const path = window.location.pathname;
+    const isMonitoring = path.includes('/admin/monitoring');
+    const isResults = path.includes('/admin/results');
+
+    const fsIcon = document.getElementById('fsIcon');
+    const fsText = document.getElementById('fsText');
+    const btnFullscreen = document.getElementById('btnToggleFullscreen');
+
+    if (isFS) {
+        try { sessionStorage.setItem('evoting_fullscreen', '1'); } catch (e) {}
+
+        if (isMonitoring) {
+            document.body.classList.remove('results-fs-active');
+            document.body.classList.add('monitoring-fs-active');
+        } else if (isResults) {
+            document.body.classList.remove('monitoring-fs-active');
+            document.body.classList.add('results-fs-active');
+        }
+
+        if (fsIcon) fsIcon.className = 'bi bi-fullscreen-exit me-1';
+        if (fsText) fsText.textContent = 'Keluar Layar';
+        if (btnFullscreen) {
+            btnFullscreen.classList.replace('btn-paper-primary', 'btn-paper-secondary');
+        }
+    } else {
+        try { sessionStorage.removeItem('evoting_fullscreen'); } catch (e) {}
+
+        document.body.classList.remove('monitoring-fs-active', 'results-fs-active');
+
+        if (fsIcon) fsIcon.className = 'bi bi-arrows-fullscreen me-1';
+        if (fsText) fsText.textContent = 'Layar Penuh';
+        if (btnFullscreen) {
+            btnFullscreen.classList.replace('btn-paper-secondary', 'btn-paper-primary');
+        }
+
+        if (window.location.search.includes('fs=1')) {
+            const url = new URL(window.location);
+            url.searchParams.delete('fs');
+            window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+        }
+    }
+
+    // Trigger chart resize if chart exists
+    setTimeout(() => {
+        if (window._monitoringChart) {
+            window._monitoringChart.resize();
+        }
+    }, 150);
+};
+
+// Global Listeners for Fullscreen Changes (e.g. ESC key)
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        window.setEvotingFullscreenUI(false);
+    } else {
+        window.setEvotingFullscreenUI(true);
+    }
+});
+document.addEventListener('webkitfullscreenchange', () => {
+    if (!document.webkitFullscreenElement) {
+        window.setEvotingFullscreenUI(false);
+    } else {
+        window.setEvotingFullscreenUI(true);
+    }
+});
+
+// Popstate (Back/Forward) handler during fullscreen
+window.addEventListener('popstate', (e) => {
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+    if (isFS && (location.pathname.includes('/admin/monitoring') || location.pathname.includes('/admin/results'))) {
+        window.seamlessNavigate(location.pathname);
+    }
+});
+
+// Seamless Page Navigation Helper without Reloading Document
+window.seamlessNavigate = async function(targetUrl) {
+    try {
+        const response = await fetch(targetUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (!response.ok) {
+            window.location.href = targetUrl;
+            return;
+        }
+
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        if (doc.title) {
+            document.title = doc.title;
+        }
+
+        const cleanUrl = targetUrl.replace(/[?&]fs=1/, '');
+        window.history.pushState({ url: cleanUrl }, '', cleanUrl);
+
+        const currentMain = document.querySelector('main');
+        const newMain = doc.querySelector('main');
+
+        if (currentMain && newMain) {
+            // Cleanup current view timers/charts
+            if (typeof window._cleanupCurrentView === 'function') {
+                window._cleanupCurrentView();
+                window._cleanupCurrentView = null;
+            }
+
+            // Replace main container HTML
+            currentMain.innerHTML = newMain.innerHTML;
+
+            const isFS = !!(
+                document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                sessionStorage.getItem('evoting_fullscreen') === '1'
+            );
+
+            if (targetUrl.includes('/admin/results')) {
+                document.body.classList.remove('monitoring-fs-active');
+                if (isFS) document.body.classList.add('results-fs-active');
+
+                // Execute inserted script elements
+                executeInsertedScripts(currentMain);
+
+                if (typeof window.initResultsView === 'function') {
+                    window.initResultsView();
+                }
+            } else if (targetUrl.includes('/admin/monitoring')) {
+                document.body.classList.remove('results-fs-active');
+                if (isFS) document.body.classList.add('monitoring-fs-active');
+
+                // Execute inserted script elements
+                executeInsertedScripts(currentMain);
+
+                if (typeof window.initMonitoringView === 'function') {
+                    window.initMonitoringView();
+                }
+            }
+        } else {
+            window.location.href = targetUrl;
+        }
+    } catch (err) {
+        console.error('Seamless transition error:', err);
+        window.location.href = targetUrl;
+    }
+};
+
+function executeInsertedScripts(container) {
+    const scripts = Array.from(container.querySelectorAll('script'));
+    scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.textContent = oldScript.textContent;
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+}
+
