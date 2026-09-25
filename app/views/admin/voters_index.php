@@ -55,7 +55,7 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
         <div class="col-md-6 col-lg-7 d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
             <div class="d-flex align-items-center gap-1">
                 <span class="text-muted small">Tampilkan:</span>
-                <select name="limit" class="form-select form-select-sm form-control-paper w-auto" onchange="this.form.submit()">
+                <select name="limit" class="form-select form-select-sm form-select-paper w-auto" onchange="this.form.submit()">
                     <option value="10" <?= $limit === 10 ? 'selected' : '' ?>>10 baris</option>
                     <option value="25" <?= $limit === 25 ? 'selected' : '' ?>>25 baris</option>
                     <option value="50" <?= $limit === 50 ? 'selected' : '' ?>>50 baris</option>
