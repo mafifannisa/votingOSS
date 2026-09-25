@@ -51,6 +51,8 @@ $router->post('/admin/voters/store', [VoterController::class, 'store']);
 $router->get('/admin/voters/edit/{id}', [VoterController::class, 'edit']);
 $router->post('/admin/voters/update/{id}', [VoterController::class, 'update']);
 $router->post('/admin/voters/delete/{id}', [VoterController::class, 'delete']);
+$router->post('/admin/voters/reset/{id}', [VoterController::class, 'resetStatus']);
+$router->post('/admin/voters/reset-all', [VoterController::class, 'resetAllStatus']);
 $router->get('/admin/voters/print', [VoterController::class, 'printCards']);
 
 // Import Data Pemilih Excel / CSV

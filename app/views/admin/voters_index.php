@@ -21,7 +21,7 @@ use App\Core\Security;
 </div>
 
 <!-- Voter Stats Badges -->
-<div class="row g-2 mb-4">
+<div class="row g-2 mb-4 align-items-center">
     <div class="col-auto">
         <div class="badge bg-light text-dark border p-2 px-3 fs-6">
             Total DPT: <strong class="text-primary"><?= number_format($totalRecords, 0, ',', '.') ?></strong>
@@ -37,6 +37,13 @@ use App\Core\Security;
             Belum Memilih: <strong class="text-danger"><?= number_format($totalNotVoted, 0, ',', '.') ?></strong>
         </div>
     </div>
+    <?php if ($totalVoted > 0): ?>
+        <div class="col-auto ms-sm-auto">
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark border-warning fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalResetAllVoters" title="Reset status hak pilih seluruh pemilih kembali ke belum memilih">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Semua Hak Pilih
+            </button>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php
@@ -115,8 +122,18 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td class="text-end">
-                                <a href="/admin/voters/edit/<?= (int)$v['id'] ?>" class="btn btn-sm btn-outline-secondary me-1">
+                            <td class="text-end text-nowrap">
+                                <?php if ((int)$v['has_voted'] === 1): ?>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-warning text-dark me-1 btn-trigger-reset-single"
+                                            data-voter-id="<?= (int)$v['id'] ?>"
+                                            data-voter-nama="<?= Security::escape($v['nama']) ?>"
+                                            data-voter-kelas="<?= Security::escape($v['kelas']) ?>"
+                                            title="Reset Hak Pilih Siswa Ini">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                <?php endif; ?>
+                                <a href="/admin/voters/edit/<?= (int)$v['id'] ?>" class="btn btn-sm btn-outline-secondary me-1" title="Edit Data Pemilih">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <form action="/admin/voters/delete/<?= (int)$v['id'] ?>" method="POST" class="d-inline"
@@ -214,3 +231,174 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
         </div>
     </div>
 </div>
+
+<!-- ========================================================================
+     MODAL 1: RESET STATUS HAK PILIH SISWA (INDIVIDU)
+     ======================================================================== -->
+<div class="modal fade" id="modalResetSingleVoter" tabindex="-1" aria-labelledby="modalResetSingleVoterLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-warning-subtle text-warning-emphasis p-2 rounded-3 d-inline-flex">
+                        <i class="bi bi-arrow-counterclockwise fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="modalResetSingleVoterLabel">Reset Hak Pilih Siswa</h5>
+                        <small class="text-muted">Kembalikan status agar siswa dapat memilih ulang</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <form id="formResetSingleVoter" method="POST" action="">
+                <?= Security::csrfField() ?>
+                <div class="modal-body px-4 py-3">
+                    <div class="alert alert-warning border-0 small d-flex align-items-start gap-2 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-6 mt-0.5 text-warning flex-shrink-0"></i>
+                        <div>
+                            Tindakan ini akan mengembalikan status <strong id="resetSingleVoterName" class="text-dark">-</strong> (<span id="resetSingleVoterKelas">-</span>) menjadi <strong>Belum Memilih</strong>. Siswa tersebut dapat login dan memberikan suara kembali.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="resetSingleAccessCode" class="form-label fw-bold small text-uppercase text-secondary">
+                            Kode Akses Keamanan <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" 
+                                   name="access_code" 
+                                   id="resetSingleAccessCode" 
+                                   class="form-control form-control-paper" 
+                                   placeholder="Masukkan kode akses (osis2026)" 
+                                   required 
+                                   autocomplete="current-password">
+                            <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="resetSingleAccessCode" title="Lihat / Sembunyikan Kode">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text small text-muted">
+                            <i class="bi bi-shield-lock me-1"></i>Ketik <strong>osis2026</strong> untuk mengonfirmasi reset status.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                    <button type="button" class="btn btn-paper-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold px-3">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Konfirmasi Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================
+     MODAL 2: RESET STATUS HAK PILIH SEMUA SISWA (MASSAL)
+     ======================================================================== -->
+<div class="modal fade" id="modalResetAllVoters" tabindex="-1" aria-labelledby="modalResetAllVotersLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-danger-subtle text-danger p-2 rounded-3 d-inline-flex">
+                        <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-danger mb-0" id="modalResetAllVotersLabel">Reset Semua Hak Pilih</h5>
+                        <small class="text-muted">Kembalikan seluruh pemilih menjadi Belum Memilih</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <form method="POST" action="/admin/voters/reset-all">
+                <?= Security::csrfField() ?>
+                <div class="modal-body px-4 py-3">
+                    <div class="alert alert-danger border-0 small d-flex align-items-start gap-2 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-6 mt-0.5 text-danger flex-shrink-0"></i>
+                        <div>
+                            <strong>Peringatan Keamanan:</strong> Tindakan ini akan mengembalikan status <strong><?= number_format($totalVoted, 0, ',', '.') ?> siswa</strong> yang sudah memilih menjadi <strong>Belum Memilih</strong>. Fitur ini cocok digunakan untuk persiapan simulasi atau gladi resik sebelum pemilu resmi dimulai.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="resetAllAccessCode" class="form-label fw-bold small text-uppercase text-secondary">
+                            Kode Akses Keamanan <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" 
+                                   name="access_code" 
+                                   id="resetAllAccessCode" 
+                                   class="form-control form-control-paper" 
+                                   placeholder="Masukkan kode akses (osis2026)" 
+                                   required 
+                                   autocomplete="current-password">
+                            <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="resetAllAccessCode" title="Lihat / Sembunyikan Kode">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text small text-muted">
+                            <i class="bi bi-shield-lock me-1"></i>Ketik <strong>osis2026</strong> untuk mengonfirmasi reset seluruh pemilih.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                    <button type="button" class="btn btn-paper-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger fw-bold px-3">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Ya, Reset Semua Hak Pilih
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script Interaksi Modal Reset & Password Toggle -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const resetModalEl = document.getElementById('modalResetSingleVoter');
+    const resetModal = resetModalEl && typeof bootstrap !== 'undefined' ? new bootstrap.Modal(resetModalEl) : null;
+    const formReset = document.getElementById('formResetSingleVoter');
+    const nameEl = document.getElementById('resetSingleVoterName');
+    const classEl = document.getElementById('resetSingleVoterKelas');
+    const inputCode = document.getElementById('resetSingleAccessCode');
+
+    // Trigger tombol reset per siswa di tabel
+    document.querySelectorAll('.btn-trigger-reset-single').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-voter-id');
+            const nama = btn.getAttribute('data-voter-nama');
+            const kelas = btn.getAttribute('data-voter-kelas');
+
+            if (formReset) formReset.action = `/admin/voters/reset/${id}`;
+            if (nameEl) nameEl.textContent = nama;
+            if (classEl) classEl.textContent = kelas;
+            if (inputCode) inputCode.value = '';
+
+            if (resetModal) {
+                resetModal.show();
+                setTimeout(() => {
+                    if (inputCode) inputCode.focus();
+                }, 350);
+            }
+        });
+    });
+
+    // Toggle Lihat / Sembunyikan Kode Akses
+    document.querySelectorAll('.btn-toggle-password').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            const icon = btn.querySelector('i');
+            if (targetInput && icon) {
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    icon.className = 'bi bi-eye-slash';
+                } else {
+                    targetInput.type = 'password';
+                    icon.className = 'bi bi-eye';
+                }
+            }
+        });
+    });
+});
+</script>

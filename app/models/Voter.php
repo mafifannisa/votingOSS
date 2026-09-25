@@ -149,4 +149,21 @@ class Voter extends Model
     {
         return (bool) $this->db->exec('DELETE FROM voters');
     }
+
+    /**
+     * Reset status hak pilih satu siswa (mengembalikan has_voted ke 0)
+     */
+    public function resetVoteStatus(int $id): bool
+    {
+        $stmt = $this->db->prepare('UPDATE voters SET has_voted = 0 WHERE id = ?');
+        return $stmt->execute([$id]);
+    }
+
+    /**
+     * Reset status hak pilih semua siswa (mengembalikan has_voted ke 0)
+     */
+    public function resetAllVoteStatus(): bool
+    {
+        return (bool) $this->db->exec('UPDATE voters SET has_voted = 0');
+    }
 }

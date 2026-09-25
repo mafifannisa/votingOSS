@@ -10,6 +10,7 @@ use App\Core\Security;
 use App\Core\Session;
 use App\Core\Database;
 use App\Models\Voter;
+use App\Models\Election;
 
 class VoterController extends Controller
 {
@@ -156,6 +157,81 @@ class VoterController extends Controller
         $this->voterModel->delete($voterId);
 
         Session::setFlash('success', 'Data pemilih berhasil dihapus.');
+        $this->redirect('/admin/voters');
+    }
+
+    /**
+     * Reset status hak pilih satu pemilih kembali ke 0 (Belum Memilih)
+     * Memerlukan verifikasi kode akses keamanan (default: osis2026)
+     */
+    public function resetStatus(string $id): void
+    {
+        $this->requireAdmin();
+        $this->validateCsrf();
+
+        $redirectTo = !empty($_POST['redirect_to']) && str_starts_with($_POST['redirect_to'], '/admin/') 
+            ? $_POST['redirect_to'] 
+            : '/admin/voters';
+
+        $accessCode = trim($_POST['access_code'] ?? '');
+        $electionModel = new Election();
+
+        if (empty($accessCode)) {
+            Session::setFlash('error', 'Kode akses keamanan wajib diisi.');
+            $this->redirect($redirectTo);
+        }
+
+        if (!$electionModel->verifyResultCode($accessCode) && $accessCode !== 'osis2026') {
+            Session::setFlash('error', 'Kode akses keamanan salah! Reset status hak pilih dibatalkan.');
+            $this->redirect($redirectTo);
+        }
+
+        $voterId = (int) $id;
+        $voter = $this->voterModel->findById($voterId);
+        if (!$voter) {
+            Session::setFlash('error', 'Data pemilih tidak ditemukan.');
+            $this->redirect($redirectTo);
+        }
+
+        if ($this->voterModel->resetVoteStatus($voterId)) {
+            error_log("[SECURITY] Reset hak pilih pemilih ID {$voterId} ({$voter['nama']}) oleh Admin");
+            Session::setFlash('success', "Status hak pilih {$voter['nama']} ({$voter['kelas']}) berhasil di-reset. Siswa kini dapat login dan memilih kembali.");
+        } else {
+            Session::setFlash('error', 'Gagal mereset status hak pilih pemilih.');
+        }
+
+        $this->redirect($redirectTo);
+    }
+
+    /**
+     * Reset status hak pilih seluruh siswa kembali ke 0 secara massal
+     * Memerlukan verifikasi kode akses keamanan (default: osis2026)
+     */
+    public function resetAllStatus(): void
+    {
+        $this->requireAdmin();
+        $this->validateCsrf();
+
+        $accessCode = trim($_POST['access_code'] ?? '');
+        $electionModel = new Election();
+
+        if (empty($accessCode)) {
+            Session::setFlash('error', 'Kode akses keamanan wajib diisi.');
+            $this->redirect('/admin/voters');
+        }
+
+        if (!$electionModel->verifyResultCode($accessCode) && $accessCode !== 'osis2026') {
+            Session::setFlash('error', 'Kode akses keamanan salah! Reset seluruh status hak pilih dibatalkan.');
+            $this->redirect('/admin/voters');
+        }
+
+        if ($this->voterModel->resetAllVoteStatus()) {
+            error_log('[SECURITY] Reset massal status hak pilih seluruh pemilih oleh Admin');
+            Session::setFlash('success', 'Seluruh status hak pilih pemilih berhasil di-reset menjadi Belum Memilih.');
+        } else {
+            Session::setFlash('error', 'Gagal mereset status hak pilih seluruh pemilih.');
+        }
+
         $this->redirect('/admin/voters');
     }
 
