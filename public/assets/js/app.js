@@ -19,6 +19,7 @@ window.PaperToast = typeof Swal !== 'undefined' ? Swal.mixin({
     showConfirmButton: false,
     timer: 4000,
     timerProgressBar: true,
+    backdrop: false, // Pastikan tidak ada overlay backdrop gelap saat toast aktif
     didOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer);
         toast.addEventListener('mouseleave', Swal.resumeTimer);

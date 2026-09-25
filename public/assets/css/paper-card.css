@@ -92,18 +92,23 @@ body.bg-paper {
 .btn-paper-primary {
     background-color: var(--paper-accent-primary);
     border: 1px solid var(--paper-accent-primary);
-    color: #ffffff;
+    color: #ffffff !important;
     font-weight: 600;
     border-radius: 10px;
     padding: 0.65rem 1.5rem;
     box-shadow: 0 2px 6px rgba(30, 58, 138, 0.2);
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    text-decoration: none;
 }
 
 .btn-paper-primary:hover, .btn-paper-primary:focus {
     background-color: var(--paper-accent-primary-hover);
     border-color: var(--paper-accent-primary-hover);
-    color: #ffffff;
+    color: #ffffff !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
@@ -111,16 +116,71 @@ body.bg-paper {
 .btn-paper-secondary {
     background-color: #f3f0e6;
     border: 1px solid var(--paper-card-border);
-    color: var(--paper-text-main);
+    color: var(--paper-text-main) !important;
     font-weight: 600;
     border-radius: 10px;
     padding: 0.65rem 1.5rem;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    text-decoration: none;
 }
 
 .btn-paper-secondary:hover {
     background-color: #e9e4d5;
-    color: var(--paper-text-main);
+    color: var(--paper-text-main) !important;
+}
+
+/* Paper Green / Excel Button */
+.btn-paper-success {
+    background-color: #107c41;
+    border: 1px solid #107c41;
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.65rem 1.5rem;
+    box-shadow: 0 2px 6px rgba(16, 124, 65, 0.22);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    text-decoration: none;
+}
+
+.btn-paper-success:hover, .btn-paper-success:focus {
+    background-color: #0b5a2f;
+    border-color: #0b5a2f;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 124, 65, 0.32);
+}
+
+/* Paper Outline Green Button */
+.btn-paper-outline-success {
+    background-color: #ffffff;
+    border: 1.5px solid #107c41;
+    color: #107c41 !important;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.65rem 1.5rem;
+    box-shadow: 0 2px 6px rgba(16, 124, 65, 0.08);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    text-decoration: none;
+}
+
+.btn-paper-outline-success:hover, .btn-paper-outline-success:focus {
+    background-color: #107c41;
+    border-color: #107c41;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 124, 65, 0.25);
 }
 
 .btn-paper-vote {
@@ -277,15 +337,36 @@ body.bg-paper {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
 }
 
-.swal2-container.swal2-backdrop-show {
+/* Backdrop KHUSUS untuk modal pop-up (TIDAK untuk toast) */
+body:not(.swal2-toast-shown) .swal2-container.swal2-backdrop-show {
     background: rgba(36, 41, 47, 0.48) !important;
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
 }
 
-/* Modal Popup */
-.swal2-popup.paper-swal-popup,
-.swal2-popup {
+/* Kontainer Toast: Tanpa backdrop, tanpa background hitam/abu, transparan murni */
+body.swal2-toast-shown .swal2-container,
+.swal2-container.swal2-toast-shown,
+.swal2-container.swal2-top-end,
+.swal2-container.swal2-top-start,
+.swal2-container.swal2-bottom-end,
+.swal2-container.swal2-bottom-start,
+.swal2-container.swal2-top,
+.swal2-container.swal2-bottom {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    pointer-events: none !important;
+}
+
+.swal2-toast {
+    pointer-events: auto !important;
+}
+
+/* Modal Popup (Khusus dialog modal, bukan toast) */
+.swal2-popup.paper-swal-popup:not(.swal2-toast),
+.swal2-popup:not(.swal2-toast) {
     background: var(--paper-card-bg, #ffffff) !important;
     border: 1.5px solid var(--paper-card-border, #e6e2d8) !important;
     border-radius: 18px !important;
