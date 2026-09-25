@@ -38,7 +38,17 @@ class Database
                 );
             } catch (PDOException $e) {
                 error_log('Database connection error: ' . $e->getMessage());
-                throw new RuntimeException('Koneksi database gagal. Silakan periksa konfigurasi.');
+
+                // Jika belum terinstal dan gagal koneksi, arahkan ke wizard instalasi otomatis
+                $reqUri = $_SERVER['REQUEST_URI'] ?? '';
+                if (!str_contains($reqUri, '/install') && !file_exists(__DIR__ . '/../../storage/.installed')) {
+                    header('Location: /install');
+                    exit;
+                }
+
+                $appConfig = require __DIR__ . '/../../config/app.php';
+                $detail = ($appConfig['debug'] ?? true) ? ': ' . $e->getMessage() : '. Silakan periksa konfigurasi.';
+                throw new RuntimeException('Koneksi database gagal' . $detail, (int) $e->getCode(), $e);
             }
         }
 

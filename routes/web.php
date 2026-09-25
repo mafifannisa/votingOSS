@@ -5,8 +5,10 @@ declare(strict_types=1);
 /** @var \App\Core\Router $router */
 
 use App\Controllers\AuthController;
+use App\Controllers\BackupController;
 use App\Controllers\CandidateController;
 use App\Controllers\DashboardController;
+use App\Controllers\InstallController;
 use App\Controllers\ResultController;
 use App\Controllers\VoterController;
 use App\Controllers\VotingController;
@@ -18,6 +20,10 @@ $router->post('/login/process', [AuthController::class, 'loginVoter']);
 
 $router->get('/vote', [VotingController::class, 'showBallot']);
 $router->post('/vote/submit', [VotingController::class, 'submitVote']);
+
+// --- SETUP & INSTALLER (SERVER BARU) ---
+$router->get('/install', [InstallController::class, 'index']);
+$router->post('/install/process', [InstallController::class, 'process']);
 
 // --- AREA ADMIN (PANITIA) ---
 $router->get('/admin', function () {
@@ -56,3 +62,9 @@ $router->get('/admin/results', [ResultController::class, 'index']);
 $router->post('/admin/results/unlock', [ResultController::class, 'unlock']);
 $router->post('/admin/results/lock', [ResultController::class, 'lock']);
 $router->get('/admin/results/data', [ResultController::class, 'getData']);
+
+// Backup & Restore Database
+$router->get('/admin/backup', [BackupController::class, 'index']);
+$router->get('/admin/backup/export', [BackupController::class, 'export']);
+$router->post('/admin/backup/restore', [BackupController::class, 'restore']);
+$router->post('/admin/backup/reset-votes', [BackupController::class, 'resetVotes']);

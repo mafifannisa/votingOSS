@@ -59,6 +59,11 @@ $isVoter = Session::has('voter_id');
                                 <i class="bi bi-trophy me-1"></i> Hasil
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold" href="/admin/backup">
+                                <i class="bi bi-database-gear me-1"></i> Backup & Restore
+                            </a>
+                        </li>
                         <li class="nav-item ms-lg-2">
                             <form action="/admin/logout" method="POST" class="d-inline">
                                 <?= Security::csrfField() ?>

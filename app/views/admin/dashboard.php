@@ -140,6 +140,9 @@ use App\Core\Security;
                 <a href="/admin/candidates/create" class="btn btn-paper-secondary text-start py-2">
                     <i class="bi bi-person-badge me-2 text-warning"></i> Tambah Paslon Baru
                 </a>
+                <a href="/admin/backup" class="btn btn-paper-secondary text-start py-2">
+                    <i class="bi bi-database-gear me-2 text-info"></i> Backup & Restore Database
+                </a>
                 <a href="/" target="_blank" class="btn btn-outline-primary text-start py-2">
                     <i class="bi bi-box-arrow-up-right me-2"></i> Buka Bilik Pemilih (Tab Baru)
                 </a>

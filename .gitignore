@@ -1,0 +1,4 @@
+/storage/.installed
+/storage/logs/*.log
+/public/assets/images/candidates/*
+!/public/assets/images/candidates/.gitkeep
