@@ -65,7 +65,7 @@ use App\Core\Security;
 
                         <div class="mb-4">
                             <label for="nisn" class="form-label fw-bold small text-uppercase text-secondary">
-                                Nomor Induk Siswa Nasional (NISN)
+                                NISN / Kode Guru / NIP
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0">
@@ -76,14 +76,14 @@ use App\Core\Security;
                                     name="nisn" 
                                     id="nisn" 
                                     class="form-control form-control-paper border-start-0" 
-                                    placeholder="Masukkan 10 digit NISN Anda"
+                                    placeholder="Masukkan NISN atau Kode Guru / NIP"
                                     pattern="[0-9]*" 
                                     inputmode="numeric" 
                                     required
                                 >
                             </div>
                             <div class="form-text mt-2 small text-muted">
-                                <i class="bi bi-info-circle me-1"></i> NISN Anda hanya dapat digunakan <strong>1 kali</strong> untuk memilih.
+                                <i class="bi bi-info-circle me-1"></i> Nomor identitas hanya dapat digunakan <strong>1 kali</strong> untuk memilih.
                             </div>
                         </div>
 
@@ -436,19 +436,19 @@ window.initVoterLoginView = function() {
     function onScanSuccess(decodedText) {
         if (!isScanning) return;
 
-        // Ambil urutan angka NISN dari hasil pemindaian
-        const matched = decodedText.match(/[0-9]{8,15}/);
+        // Ambil urutan angka NISN / Kode Guru dari hasil pemindaian
+        const matched = decodedText.match(/[0-9]{3,20}/);
         const nisnVal = matched ? matched[0] : decodedText.replace(/[^0-9]/g, '');
 
-        if (!nisnVal || nisnVal.length < 8) {
+        if (!nisnVal || nisnVal.length < 3) {
             if (scanStatusMsg) {
                 scanStatusMsg.className = 'alert alert-warning border small text-center mb-3';
-                scanStatusMsg.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Barcode terbaca: "${decodedText}", namun bukan format NISN yang valid.`;
+                scanStatusMsg.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Barcode terbaca: "${decodedText}", namun bukan format nomor yang valid.`;
             }
             if (window.PaperToast) {
                 window.PaperToast.fire({
                     icon: 'warning',
-                    title: 'Format barcode tidak valid sebagai NISN.'
+                    title: 'Format barcode tidak valid.'
                 });
             }
             return;

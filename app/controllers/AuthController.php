@@ -56,8 +56,8 @@ class AuthController extends Controller
             $sendError('Silakan masukkan NISN Anda.');
         }
 
-        if (!preg_match('/^[0-9]{8,15}$/', $nisn)) {
-            $sendError('Format NISN tidak valid. Masukkan angka NISN yang benar.');
+        if (!preg_match('/^[0-9]{3,20}$/', $nisn)) {
+            $sendError('Format NISN / Kode Identitas tidak valid. Masukkan digit angka yang benar.');
         }
 
         $nisnHash = Security::hashNisn($nisn);

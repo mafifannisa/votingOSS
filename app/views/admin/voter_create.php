@@ -16,9 +16,9 @@ use App\Core\Security;
                 <?= Security::csrfField() ?>
 
                 <div class="mb-3">
-                    <label for="nisn" class="form-label fw-bold">NISN (10 Digit Angka) <span class="text-danger">*</span></label>
-                    <input type="text" name="nisn" id="nisn" class="form-control form-control-paper" placeholder="Contoh: 0051234567" pattern="[0-9]{8,15}" required autofocus>
-                    <div class="form-text small">NISN akan di-hash secara aman menggunakan algoritma HMAC-SHA256.</div>
+                    <label for="nisn" class="form-label fw-bold">NISN / Kode Guru / NIP <span class="text-danger">*</span></label>
+                    <input type="text" name="nisn" id="nisn" class="form-control form-control-paper" placeholder="Contoh: 0051234567 atau 45189" pattern="[0-9]{3,20}" required autofocus>
+                    <div class="form-text small">Nomor identitas akan di-hash secara aman menggunakan algoritma HMAC-SHA256.</div>
                 </div>
 
                 <div class="mb-3">

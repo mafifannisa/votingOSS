@@ -77,8 +77,8 @@ class VoterController extends Controller
             $this->redirect('/admin/voters/create');
         }
 
-        if (!preg_match('/^[0-9]{8,15}$/', $nisn)) {
-            Session::setFlash('error', 'Format NISN harus berupa angka (8-15 digit).');
+        if (!preg_match('/^[0-9]{3,20}$/', $nisn)) {
+            Session::setFlash('error', 'Format NISN / Kode Guru harus berupa angka (3-20 digit).');
             $this->redirect('/admin/voters/create');
         }
 
