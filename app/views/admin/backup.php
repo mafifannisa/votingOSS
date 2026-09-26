@@ -48,8 +48,8 @@ use App\Core\Security;
         <div class="paper-card h-100 p-4 p-md-5 d-flex flex-column justify-content-between">
             <div>
                 <div class="d-flex align-items-center mb-3">
-                    <div class="p-2 rounded-circle bg-primary-subtle text-primary me-3">
-                        <i class="bi bi-cloud-arrow-down-fill fs-3"></i>
+                    <div class="rounded-circle bg-primary-subtle text-primary me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 54px; height: 54px;">
+                        <i class="bi bi-cloud-arrow-down-fill fs-3 lh-1"></i>
                     </div>
                     <div>
                         <h5 class="fw-bold mb-0">Cadangkan Sistem (Backup)</h5>
@@ -91,8 +91,8 @@ use App\Core\Security;
         <div class="paper-card h-100 p-4 p-md-5 d-flex flex-column justify-content-between">
             <div>
                 <div class="d-flex align-items-center mb-3">
-                    <div class="p-2 rounded-circle bg-warning-subtle text-warning-emphasis me-3">
-                        <i class="bi bi-arrow-counterclockwise fs-3"></i>
+                    <div class="rounded-circle bg-warning-subtle text-warning-emphasis me-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 54px; height: 54px;">
+                        <i class="bi bi-arrow-counterclockwise fs-3 lh-1"></i>
                     </div>
                     <div>
                         <h5 class="fw-bold mb-0">Pulihkan Sistem (Restore)</h5>
