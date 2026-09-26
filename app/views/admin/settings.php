@@ -43,40 +43,77 @@ if (empty($currentFooterLogo)) {
 
         <!-- PRATINJAU LANGSUNG (LIVE PREVIEW) -->
         <div class="paper-card mb-4 border-primary border-top border-3">
-            <div class="paper-card-header bg-light d-flex justify-content-between align-items-center py-2.5">
-                <span class="small fw-bold text-uppercase text-primary">
-                    <i class="bi bi-eye-fill me-1"></i> Pratinjau Tampilan Langsung (Live Preview)
-                </span>
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">
-                    Real-time
+            <div class="paper-card-header bg-light d-flex justify-content-between align-items-center px-4 py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-1.5 d-inline-flex align-items-center justify-content-center">
+                        <i class="bi bi-eye-fill text-white small"></i>
+                    </span>
+                    <span class="fw-bold text-dark">
+                        Pratinjau Tampilan Langsung (Live Preview)
+                    </span>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 small">
+                    <i class="bi bi-lightning-charge-fill me-1"></i> Real-time
                 </span>
             </div>
-            <div class="p-3 bg-paper">
-                <!-- Preview Navbar Mini -->
-                <div class="mb-3">
-                    <div class="small fw-bold text-muted mb-1.5"><i class="bi bi-layout-text-window-reverse me-1"></i> Pratinjau Header / Navbar:</div>
-                    <div class="bg-white border rounded p-2.5 shadow-xs d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <img id="previewNavLogo" src="<?= Security::escape($currentAppLogo) ?>" alt="Navbar Logo" style="height: 34px; width: auto; object-fit: contain;">
-                            <span id="previewNavText" class="fw-bold text-dark fs-6" style="letter-spacing: -0.01em;">
+            
+            <div class="p-3 p-md-4 bg-light bg-opacity-50">
+                <!-- Browser Mockup Window -->
+                <div class="shadow-sm rounded-3 overflow-hidden border bg-white">
+                    <!-- Browser Window Header Bar -->
+                    <div class="bg-light border-bottom px-3.5 py-2.5 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="rounded-circle d-inline-block" style="width: 11px; height: 11px; background-color: #ef4444;"></span>
+                            <span class="rounded-circle d-inline-block" style="width: 11px; height: 11px; background-color: #f59e0b;"></span>
+                            <span class="rounded-circle d-inline-block" style="width: 11px; height: 11px; background-color: #10b981;"></span>
+                        </div>
+                        <div class="bg-white px-3 py-1 rounded-pill border small text-muted text-truncate mx-2 shadow-2xs d-flex align-items-center gap-1.5" style="max-width: 380px; font-size: 0.76rem;">
+                            <i class="bi bi-shield-check text-success"></i>
+                            <span class="font-monospace text-secondary">https://e-voting.sekolah.local/</span>
+                        </div>
+                        <div class="small text-muted fw-semibold d-none d-sm-flex align-items-center gap-1">
+                            <i class="bi bi-display text-primary"></i> <span style="font-size: 0.78rem;">Simulasi Layar</span>
+                        </div>
+                    </div>
+
+                    <!-- 1. Pratinjau Header / Navbar dengan Padding Lega -->
+                    <div class="bg-white border-bottom px-4 py-3.5 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <img id="previewNavLogo" src="<?= Security::escape($currentAppLogo) ?>" alt="Navbar Logo" style="height: 38px; width: auto; object-fit: contain;">
+                            <span id="previewNavText" class="fw-bold text-dark fs-5 mb-0" style="letter-spacing: -0.01em;">
                                 <?= Security::escape($currentAppName) ?>
                             </span>
                         </div>
-                        <div class="d-none d-sm-flex gap-2">
-                            <span class="badge bg-light text-muted border px-2 py-1 small">Beranda</span>
-                            <span class="badge bg-light text-muted border px-2 py-1 small">Paslon</span>
-                            <span class="badge bg-light text-muted border px-2 py-1 small">Data Pemilih</span>
+                        <div class="d-none d-md-flex align-items-center gap-2">
+                            <span class="badge bg-light text-secondary border px-3 py-1.5 fw-semibold small">
+                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            </span>
+                            <span class="badge bg-light text-secondary border px-3 py-1.5 fw-semibold small">
+                                <i class="bi bi-people me-1"></i> Paslon
+                            </span>
+                            <span class="badge bg-light text-secondary border px-3 py-1.5 fw-semibold small">
+                                <i class="bi bi-person-lines-fill me-1"></i> Data Pemilih
+                            </span>
+                            <span class="badge bg-light text-secondary border px-3 py-1.5 fw-semibold small">
+                                <i class="bi bi-broadcast me-1"></i> Pantau Suara
+                            </span>
                         </div>
                     </div>
-                </div>
 
-                <!-- Preview Footer Mini -->
-                <div>
-                    <div class="small fw-bold text-muted mb-1.5"><i class="bi bi-layout-text-sidebar-reverse me-1"></i> Pratinjau Footer Halaman:</div>
-                    <div class="bg-white border rounded p-2.5 text-center shadow-xs">
-                        <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                            <img id="previewFooterLogo" src="<?= Security::escape($currentFooterLogo) ?>" alt="Footer Logo" style="height: 22px; width: auto; object-fit: contain; <?= empty($currentFooterLogo) ? 'display: none !important;' : '' ?>">
-                            <span id="previewFooterText" class="text-muted small">
+                    <!-- 2. Konten Simulasi Tengah (Memberikan visual ruang yang proporsional) -->
+                    <div class="p-4 p-md-5 bg-paper text-center">
+                        <div class="p-3.5 border border-2 border-dashed rounded-3 bg-white bg-opacity-75 text-muted small mx-auto shadow-2xs" style="max-width: 520px;">
+                            <i class="bi bi-layout-text-window text-primary fs-3 d-block mb-1.5"></i>
+                            <span class="fw-bold text-dark d-block mb-1" style="font-size: 0.95rem;">Area Konten Sistem E-Voting</span>
+                            <span class="text-secondary">Bagian atas menampilkan Header Navbar Brand, dan bagian bawah menampilkan Teks &amp; Logo Footer.</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Pratinjau Footer Halaman dengan Padding Lega -->
+                    <div class="bg-white border-top px-4 py-4 text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2.5 flex-wrap">
+                            <img id="previewFooterLogo" src="<?= Security::escape($currentFooterLogo) ?>" alt="Footer Logo" style="height: 24px; width: auto; object-fit: contain; vertical-align: middle; <?= empty($currentFooterLogo) ? 'display: none !important;' : '' ?>">
+                            <span id="previewFooterText" class="text-muted small fw-medium">
                                 <?= Security::escape($currentFooterText) ?>
                             </span>
                         </div>

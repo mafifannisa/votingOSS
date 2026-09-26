@@ -57,75 +57,85 @@ $cssVer = file_exists($cssFile) ? (string) filemtime($cssFile) : (string) time()
     </script>
 
     <!-- Paper Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-paper py-3 sticky-top">
-        <div class="container">
-            <a class="navbar-brand navbar-brand-paper" href="/">
+    <?php
+    $reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
+    $isDashboardActive = str_starts_with($reqPath, '/admin/dashboard');
+    $isCandidatesActive = str_starts_with($reqPath, '/admin/candidates');
+    $isVotersActive = str_starts_with($reqPath, '/admin/voters');
+    $isMonitoringActive = str_starts_with($reqPath, '/admin/monitoring');
+    $isResultsActive = str_starts_with($reqPath, '/admin/results');
+    $isBackupActive = str_starts_with($reqPath, '/admin/backup');
+    $isSettingsActive = str_starts_with($reqPath, '/admin/settings');
+    ?>
+    <nav class="navbar navbar-expand-xl navbar-paper py-2.5 sticky-top">
+        <div class="container-fluid px-3 px-lg-4 px-xl-5">
+            <a class="navbar-brand navbar-brand-paper me-2 me-xl-4" href="/">
                 <?php if (!empty($appLogo)): ?>
-                    <img src="<?= Security::escape($appLogo) ?>" alt="Logo" class="navbar-logo me-2" style="height: 38px; width: auto; object-fit: contain;">
+                    <img src="<?= Security::escape($appLogo) ?>" alt="Logo" class="navbar-logo">
                 <?php endif; ?>
                 <span><?= Security::escape($appName ?? 'E-VOTING OSIS') ?></span>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler border-0 shadow-none px-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
                     <?php if ($isAdmin): ?>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold" href="/admin/dashboard">
-                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            <a class="nav-link <?= $isDashboardActive ? 'active' : '' ?>" href="/admin/dashboard">
+                                <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold" href="/admin/candidates">
-                                <i class="bi bi-people me-1"></i> Paslon
+                            <a class="nav-link <?= $isCandidatesActive ? 'active' : '' ?>" href="/admin/candidates">
+                                <i class="bi bi-people"></i> <span>Paslon</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold" href="/admin/voters">
-                                <i class="bi bi-person-lines-fill me-1"></i> Data Pemilih
+                            <a class="nav-link <?= $isVotersActive ? 'active' : '' ?>" href="/admin/voters">
+                                <i class="bi bi-person-lines-fill"></i> <span>Data Pemilih</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold" href="/admin/monitoring">
-                                <i class="bi bi-broadcast me-1"></i> Pantau Suara
+                            <a class="nav-link <?= $isMonitoringActive ? 'active' : '' ?>" href="/admin/monitoring">
+                                <i class="bi bi-broadcast"></i> <span>Pantau Suara</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold" href="/admin/results">
-                                <i class="bi bi-trophy me-1"></i> Hasil Pleno
+                            <a class="nav-link <?= $isResultsActive ? 'active' : '' ?>" href="/admin/results">
+                                <i class="bi bi-trophy"></i> <span>Hasil Pleno</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold" href="/admin/backup">
-                                <i class="bi bi-database-gear me-1"></i> Backup & Restore
+                            <a class="nav-link <?= $isBackupActive ? 'active' : '' ?>" href="/admin/backup">
+                                <i class="bi bi-database-gear"></i> <span>Backup & Restore</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link fw-semibold <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/settings') ? 'active text-primary' : '' ?>" href="/admin/settings">
-                                <i class="bi bi-gear me-1"></i> Pengaturan
+                            <a class="nav-link <?= $isSettingsActive ? 'active' : '' ?>" href="/admin/settings">
+                                <i class="bi bi-gear"></i> <span>Pengaturan</span>
                             </a>
                         </li>
-                        <li class="nav-item ms-lg-2">
-                            <form action="/admin/logout" method="POST" class="d-inline">
+                        <li class="nav-item ms-xl-2 border-top-mobile">
+                            <form action="/admin/logout" method="POST" class="d-inline m-0">
                                 <?= Security::csrfField() ?>
-                                <button type="submit" class="btn btn-sm btn-outline-danger px-3">
-                                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                                <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1.5 rounded-pill d-inline-flex align-items-center gap-1.5 fw-semibold" title="Keluar dari Panel Admin">
+                                    <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
                                 </button>
                             </form>
                         </li>
                     <?php elseif ($isVoter): ?>
                         <li class="nav-item">
-                            <span class="badge bg-light text-dark border p-2">
-                                <i class="bi bi-person-badge me-1"></i> <?= Security::escape(Session::get('voter_nama')) ?>
+                            <span class="badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-1.5">
+                                <i class="bi bi-person-badge"></i> <?= Security::escape(Session::get('voter_nama')) ?>
                             </span>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
                             <a class="nav-link text-muted small" href="/admin/login">
-                                <i class="bi bi-shield-lock me-1"></i> Login Panitia
+                                <i class="bi bi-shield-lock"></i> <span>Login Panitia</span>
                             </a>
                         </li>
                     <?php endif; ?>
