@@ -205,7 +205,6 @@ window.initVoterLoginView = function() {
     // Inisialisasi daftar kamera yang tersedia
     async function initCameras() {
         if (!window.Html5Qrcode) {
-            console.error('Html5Qrcode library not loaded.');
             return [];
         }
 
@@ -225,10 +224,11 @@ window.initVoterLoginView = function() {
                 }
                 return devices;
             }
+            return devices || [];
         } catch (err) {
-            console.warn('Gagal memuat list kamera otomatis:', err);
+            // Tangani secara tenang jika perangkat tidak memiliki webcam fisik yang terpasang
+            return [];
         }
-        return [];
     }
 
     async function startScanner() {
@@ -266,12 +266,25 @@ window.initVoterLoginView = function() {
         let cameraParam = cameraSelect ? cameraSelect.value : null;
         if (!cameraParam) {
             const devices = await initCameras();
-            if (devices.length > 0) {
+            if (devices && devices.length > 0) {
                 cameraParam = devices[0].id;
             }
         }
+
+        // Jika tidak ada kamera yang terdeteksi pada perangkat ini
         if (!cameraParam) {
-            cameraParam = { facingMode: "user" };
+            await stopScanner();
+            if (scanStatusMsg) {
+                scanStatusMsg.className = 'alert alert-warning border small text-center mb-3';
+                scanStatusMsg.innerHTML = '<i class="bi bi-camera-video-off text-warning me-1"></i> Perangkat kamera / webcam tidak ditemukan. Silakan gunakan opsi <strong>Ketik Manual NISN</strong>.';
+            }
+            if (window.PaperToast) {
+                window.PaperToast.fire({
+                    icon: 'info',
+                    title: 'Webcam tidak terdeteksi. Silakan ketik NISN manual.'
+                });
+            }
+            return;
         }
 
         try {
@@ -288,11 +301,10 @@ window.initVoterLoginView = function() {
                 scanStatusMsg.innerHTML = '<i class="bi bi-camera-fill text-success me-1"></i> Kamera aktif. Arahkan barcode kartu siswa ke dalam kotak pemindai.';
             }
         } catch (err) {
-            console.error('Error starting camera:', err);
-            stopScanner();
+            await stopScanner();
             if (scanStatusMsg) {
                 scanStatusMsg.className = 'alert alert-danger border small text-center mb-3';
-                scanStatusMsg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Kamera tidak dapat diaktifkan: ' + (err.message || 'Izin kamera ditolak') + '. Silakan gunakan opsi <strong>Ketik NISN</strong>.';
+                scanStatusMsg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Kamera tidak dapat diaktifkan: ' + (err.message || 'Izin kamera ditolak') + '. Silakan gunakan opsi <strong>Ketik Manual NISN</strong>.';
             }
             if (window.PaperToast) {
                 window.PaperToast.fire({
@@ -459,7 +471,6 @@ window.initVoterLoginView = function() {
     // Otomatis siapkan kamera saat tab scanner dibuka
     if (scannerTab) {
         scannerTab.addEventListener('shown.bs.tab', () => {
-            initCameras();
             startScanner();
         });
     }
