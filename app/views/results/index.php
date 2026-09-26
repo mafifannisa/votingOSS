@@ -274,7 +274,7 @@ window.initResultsView = function() {
                                 ${isLeading ? '<span class="badge bg-warning text-dark fs-6 px-3 py-1"><i class="bi bi-trophy-fill me-1"></i> Suara Terbanyak</span>' : ''}
                             </div>
                             <div class="text-center mb-3">
-                                ${cand.foto ? `<img src="${cand.foto}" class="img-fluid rounded mb-3 border" style="max-height: 180px; object-fit: cover;">` : ''}
+                                ${cand.foto ? `<img src="${cand.foto}" class="img-fluid rounded mb-3 border" style="max-height: 180px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
                                 <h4 class="fw-bold mb-1">${cand.nama_ketua}</h4>
                                 <h5 class="fw-semibold text-secondary mb-3">& ${cand.nama_wakil}</h5>
                             </div>

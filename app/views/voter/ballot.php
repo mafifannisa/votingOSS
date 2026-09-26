@@ -66,7 +66,11 @@ document.body.classList.add('ballot-kiosk-active');
                         <!-- Candidate Photo -->
                         <div class="ballot-photo-box">
                             <?php if (!empty($cand['foto'])): ?>
-                                <img src="<?= Security::escape($cand['foto']) ?>" alt="Paslon 0<?= Security::escape($cand['nomor_urut']) ?>">
+                                <img src="<?= Security::escape($cand['foto']) ?>" alt="Paslon 0<?= Security::escape($cand['nomor_urut']) ?>" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                <div class="ballot-photo-placeholder" style="display: none;">
+                                    <i class="bi bi-people-fill display-4 mb-1"></i>
+                                    <span class="small fw-semibold">Foto Paslon 0<?= Security::escape($cand['nomor_urut']) ?></span>
+                                </div>
                             <?php else: ?>
                                 <div class="ballot-photo-placeholder">
                                     <i class="bi bi-people-fill display-4 mb-1"></i>

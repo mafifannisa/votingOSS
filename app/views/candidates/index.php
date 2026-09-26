@@ -42,7 +42,8 @@ use App\Core\Security;
                     <div class="p-3 text-center">
                         <div class="candidate-photo-wrapper mb-3" style="max-height: 180px;">
                             <?php if (!empty($cand['foto'])): ?>
-                                <img src="<?= Security::escape($cand['foto']) ?>" alt="Foto Paslon" class="candidate-photo">
+                                <img src="<?= Security::escape($cand['foto']) ?>" alt="Foto Paslon" class="candidate-photo" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';">
+                                <i class="bi bi-person-circle display-4 text-muted" style="display: none;"></i>
                             <?php else: ?>
                                 <i class="bi bi-person-circle display-4 text-muted"></i>
                             <?php endif; ?>
