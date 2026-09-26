@@ -8,6 +8,11 @@ $flashInfo = Session::getFlash('info');
 
 $isAdmin = Session::has('admin_id');
 $isVoter = Session::has('voter_id');
+
+$appJsFile = dirname(__DIR__, 3) . '/public/assets/js/app.js';
+$appJsVer = file_exists($appJsFile) ? (string) filemtime($appJsFile) : (string) time();
+$cssFile = dirname(__DIR__, 3) . '/public/assets/css/paper-card.css';
+$cssVer = file_exists($cssFile) ? (string) filemtime($cssFile) : (string) time();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -23,7 +28,7 @@ $isVoter = Session::has('voter_id');
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Paper Card Theme CSS -->
-    <link rel="stylesheet" href="/assets/css/paper-card.css">
+    <link rel="stylesheet" href="/assets/css/paper-card.css?v=<?= $cssVer ?>">
 </head>
 <body class="bg-paper d-flex flex-column min-vh-100">
     <script>
@@ -38,8 +43,13 @@ $isVoter = Session::has('voter_id');
                     } else if (path.indexOf('/admin/results') !== -1) {
                         document.body.classList.add('results-fs-active');
                         sessionStorage.setItem('evoting_fullscreen', '1');
+                    } else if (path.indexOf('/vote') !== -1) {
+                        document.body.classList.add('ballot-kiosk-active');
+                        sessionStorage.setItem('evoting_fullscreen', '1');
+                    } else if (path === '/' || path.indexOf('/login') !== -1) {
+                        sessionStorage.setItem('evoting_fullscreen', '1');
                     }
-                } else if (path.indexOf('/admin/monitoring') === -1 && path.indexOf('/admin/results') === -1) {
+                } else if (path.indexOf('/admin/monitoring') === -1 && path.indexOf('/admin/results') === -1 && path.indexOf('/vote') === -1 && path !== '/' && path.indexOf('/login') === -1) {
                     sessionStorage.removeItem('evoting_fullscreen');
                 }
             } catch (e) {}
@@ -163,6 +173,6 @@ $isVoter = Session::has('voter_id');
     <script src="/assets/js/chart.min.js"></script>
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/app.js"></script>
+    <script src="/assets/js/app.js?v=<?= $appJsVer ?>"></script>
 </body>
 </html>

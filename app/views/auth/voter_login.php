@@ -4,7 +4,19 @@ use App\Core\Security;
 
 <div class="row justify-content-center align-items-center py-3">
     <div class="col-md-7 col-lg-5">
-        <div class="paper-card shadow-sm p-4 p-md-5">
+        <div class="paper-card shadow-sm p-4 p-md-5 position-relative">
+            <!-- Tombol Layar Penuh (Fullscreen Kiosk) -->
+            <button 
+                type="button" 
+                id="btnToggleLoginFS" 
+                class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-3 rounded-pill px-2.5 py-1 d-flex align-items-center gap-1 shadow-xs" 
+                title="Mode Layar Penuh Bilik Suara"
+                style="z-index: 10;"
+            >
+                <i class="bi bi-arrows-fullscreen" id="loginFsIcon"></i>
+                <span class="small fw-semibold d-none d-sm-inline" id="loginFsText">Layar Penuh</span>
+            </button>
+
             <div class="text-center mb-4">
                 <div class="mb-3">
                     <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 84px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));">
@@ -67,8 +79,7 @@ use App\Core\Security;
                                     placeholder="Masukkan 10 digit NISN Anda"
                                     pattern="[0-9]*" 
                                     inputmode="numeric" 
-                                    required 
-                                    autofocus
+                                    required
                                 >
                             </div>
                             <div class="form-text mt-2 small text-muted">
@@ -146,7 +157,7 @@ use App\Core\Security;
 <script src="/assets/js/html5-qrcode.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+window.initVoterLoginView = function() {
     let html5QrCode = null;
     let isScanning = false;
     let audioCtx = null;
@@ -161,6 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const scanStatusMsg = document.getElementById('scanStatusMsg');
     const cameraSelect = document.getElementById('cameraSelect');
     const cameraSelectGroup = document.getElementById('cameraSelectGroup');
+
+    const formManual = document.getElementById('formManual');
+    const formScanSubmit = document.getElementById('formScanSubmit');
+    const manualInput = document.getElementById('nisn');
+    const btnToggleLoginFS = document.getElementById('btnToggleLoginFS');
 
     // Bunyikan nada bip sukses pemindaian (Web Audio API murni tanpa file eksternal)
     function playBeep() {
@@ -195,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const devices = await Html5Qrcode.getCameras();
-            if (devices && devices.length > 0) {
+            if (devices && devices.length > 0 && cameraSelect) {
                 cameraSelect.innerHTML = '';
                 devices.forEach((dev, index) => {
                     const opt = document.createElement('option');
@@ -204,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cameraSelect.appendChild(opt);
                 });
 
-                if (devices.length > 1) {
+                if (devices.length > 1 && cameraSelectGroup) {
                     cameraSelectGroup.style.display = 'block';
                 }
                 return devices;
@@ -222,12 +238,13 @@ document.addEventListener('DOMContentLoaded', () => {
             html5QrCode = new Html5Qrcode("reader");
         }
 
-        // Sembunyikan placeholder menggunakan d-none
-        scannerPlaceholder.classList.add('d-none');
-        scannerLaser.style.display = 'block';
-        btnStopCamera.style.display = 'inline-block';
-        scanStatusMsg.className = 'alert alert-info border small text-center mb-3';
-        scanStatusMsg.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menghubungkan webcam... Arahkan barcode kartu Anda.';
+        if (scannerPlaceholder) scannerPlaceholder.classList.add('d-none');
+        if (scannerLaser) scannerLaser.style.display = 'block';
+        if (btnStopCamera) btnStopCamera.style.display = 'inline-block';
+        if (scanStatusMsg) {
+            scanStatusMsg.className = 'alert alert-info border small text-center mb-3';
+            scanStatusMsg.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menghubungkan webcam... Arahkan barcode kartu Anda.';
+        }
 
         const config = {
             fps: 15,
@@ -246,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]
         };
 
-        let cameraParam = cameraSelect.value;
+        let cameraParam = cameraSelect ? cameraSelect.value : null;
         if (!cameraParam) {
             const devices = await initCameras();
             if (devices.length > 0) {
@@ -262,19 +279,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 cameraParam,
                 config,
                 onScanSuccess,
-                (errorMessage) => {
-                    // Scanning in progress...
-                }
+                () => {}
             );
 
             isScanning = true;
-            scanStatusMsg.className = 'alert alert-light border small text-center mb-3';
-            scanStatusMsg.innerHTML = '<i class="bi bi-camera-fill text-success me-1"></i> Kamera aktif. Arahkan barcode kartu siswa ke dalam kotak pemindai.';
+            if (scanStatusMsg) {
+                scanStatusMsg.className = 'alert alert-light border small text-center mb-3';
+                scanStatusMsg.innerHTML = '<i class="bi bi-camera-fill text-success me-1"></i> Kamera aktif. Arahkan barcode kartu siswa ke dalam kotak pemindai.';
+            }
         } catch (err) {
             console.error('Error starting camera:', err);
             stopScanner();
-            scanStatusMsg.className = 'alert alert-danger border small text-center mb-3';
-            scanStatusMsg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Kamera tidak dapat diaktifkan: ' + (err.message || 'Izin kamera ditolak') + '. Silakan gunakan opsi <strong>Ketik NISN</strong>.';
+            if (scanStatusMsg) {
+                scanStatusMsg.className = 'alert alert-danger border small text-center mb-3';
+                scanStatusMsg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Kamera tidak dapat diaktifkan: ' + (err.message || 'Izin kamera ditolak') + '. Silakan gunakan opsi <strong>Ketik NISN</strong>.';
+            }
             if (window.PaperToast) {
                 window.PaperToast.fire({
                     icon: 'warning',
@@ -293,21 +312,94 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         isScanning = false;
-        scannerPlaceholder.classList.remove('d-none');
-        scannerLaser.style.display = 'none';
-        btnStopCamera.style.display = 'none';
+        if (scannerPlaceholder) scannerPlaceholder.classList.remove('d-none');
+        if (scannerLaser) scannerLaser.style.display = 'none';
+        if (btnStopCamera) btnStopCamera.style.display = 'none';
     }
 
-    function onScanSuccess(decodedText, decodedResult) {
+    // Fungsi Utama Autentikasi Pemilih secara Asynchronous (Mulus Tanpa Jeda / Reload)
+    async function submitVoterLogin(formEl, nisnVal) {
+        if (!nisnVal) {
+            if (window.PaperAlert) {
+                window.PaperAlert.warning('Silakan masukkan NISN Anda terlebih dahulu.', 'NISN Kosong');
+            } else {
+                alert('Silakan masukkan NISN Anda terlebih dahulu.');
+            }
+            if (manualInput) manualInput.focus();
+            return;
+        }
+
+        const submitBtn = formEl ? formEl.querySelector('button[type="submit"]') : null;
+        const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memverifikasi...';
+        }
+
+        try {
+            const formData = new FormData(formEl);
+            formData.set('nisn', nisnVal);
+
+            const response = await fetch('/login/process', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok || !data || !data.success) {
+                const errorMsg = (data && data.message) ? data.message : 'NISN tidak valid atau belum terdaftar.';
+                if (window.PaperAlert) {
+                    window.PaperAlert.error(errorMsg, 'Gagal Masuk');
+                } else {
+                    alert(errorMsg);
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+
+                if (manualInput) {
+                    manualInput.select();
+                    manualInput.focus();
+                }
+                return;
+            }
+
+            // Hentikan pemindai webcam sebelum berpindah tampilan
+            await stopScanner();
+
+            // Berpindah ke bilik suara (halaman /vote) secara seamless tanpa reload!
+            // Fullscreen tetap aktif terus-menerus tanpa jeda atau keluar layar!
+            if (window.seamlessNavigate) {
+                await window.seamlessNavigate(data.redirect || '/vote');
+            } else {
+                window.location.href = data.redirect || '/vote';
+            }
+        } catch (err) {
+            console.error('Login submit error:', err);
+            // Fallback submit standar jika ada error fetch fatal
+            if (formEl) formEl.submit();
+        }
+    }
+
+    function onScanSuccess(decodedText) {
         if (!isScanning) return;
 
-        // Ambil urutan angka NISN dari hasil pemindaian (ekstrak angka)
+        // Ambil urutan angka NISN dari hasil pemindaian
         const matched = decodedText.match(/[0-9]{8,15}/);
         const nisnVal = matched ? matched[0] : decodedText.replace(/[^0-9]/g, '');
 
         if (!nisnVal || nisnVal.length < 8) {
-            scanStatusMsg.className = 'alert alert-warning border small text-center mb-3';
-            scanStatusMsg.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Barcode terbaca: "${decodedText}", namun tidak ditemukan format NISN yang valid.`;
+            if (scanStatusMsg) {
+                scanStatusMsg.className = 'alert alert-warning border small text-center mb-3';
+                scanStatusMsg.innerHTML = `<i class="bi bi-exclamation-circle me-1"></i> Barcode terbaca: "${decodedText}", namun bukan format NISN yang valid.`;
+            }
             if (window.PaperToast) {
                 window.PaperToast.fire({
                     icon: 'warning',
@@ -317,47 +409,99 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Hentikan pemindaian dan berikan feedback
+        // Hentikan kamera dan putar feedback suara
         stopScanner();
         playBeep();
 
-        scanStatusMsg.className = 'alert alert-success border small text-center mb-3';
-        scanStatusMsg.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Berhasil memindai NISN: <strong>${nisnVal}</strong>. Masuk ke bilik suara...`;
+        if (scanStatusMsg) {
+            scanStatusMsg.className = 'alert alert-success border small text-center mb-3';
+            scanStatusMsg.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> NISN Terdeteksi: <strong>${nisnVal}</strong>. Masuk ke bilik suara...`;
+        }
 
-        // Masukkan ke input form dan submit otomatis
-        document.getElementById('scannedNisnInput').value = nisnVal;
-        
+        const scannedInput = document.getElementById('scannedNisnInput');
+        if (scannedInput) scannedInput.value = nisnVal;
+
         setTimeout(() => {
-            document.getElementById('formScanSubmit').submit();
-        }, 600);
+            submitVoterLogin(formScanSubmit, nisnVal);
+        }, 300);
     }
 
-    // Event Listeners
-    btnStartCamera.addEventListener('click', startScanner);
-    btnStopCamera.addEventListener('click', stopScanner);
+    // Submit form manual
+    if (formManual) {
+        formManual.onsubmit = (e) => {
+            e.preventDefault();
+            const val = manualInput ? manualInput.value.trim() : '';
+            submitVoterLogin(formManual, val);
+        };
+    }
 
-    cameraSelect.addEventListener('change', () => {
-        if (isScanning) {
-            stopScanner().then(() => startScanner());
-        }
-    });
+    // Tombol Layar Penuh (Fullscreen Kiosk)
+    if (btnToggleLoginFS) {
+        btnToggleLoginFS.onclick = () => {
+            if (window.toggleEvotingFullscreen) {
+                window.toggleEvotingFullscreen();
+            }
+        };
+    }
+
+    // Event Listeners Kamera Scanner
+    if (btnStartCamera) btnStartCamera.addEventListener('click', startScanner);
+    if (btnStopCamera) btnStopCamera.addEventListener('click', stopScanner);
+
+    if (cameraSelect) {
+        cameraSelect.addEventListener('change', () => {
+            if (isScanning) {
+                stopScanner().then(() => startScanner());
+            }
+        });
+    }
 
     // Otomatis siapkan kamera saat tab scanner dibuka
-    scannerTab.addEventListener('shown.bs.tab', () => {
-        initCameras();
-        startScanner();
-    });
+    if (scannerTab) {
+        scannerTab.addEventListener('shown.bs.tab', () => {
+            initCameras();
+            startScanner();
+        });
+    }
 
     // Matikan kamera jika user berpindah ke tab manual
-    manualTab.addEventListener('shown.bs.tab', () => {
-        stopScanner();
-        const manualInput = document.getElementById('nisn');
-        if (manualInput) manualInput.focus();
-    });
+    if (manualTab) {
+        manualTab.addEventListener('shown.bs.tab', () => {
+            stopScanner();
+            if (manualInput) manualInput.focus();
+        });
+    }
 
-    btnSwitchToManual.addEventListener('click', () => {
-        const bsTab = new bootstrap.Tab(manualTab);
-        bsTab.show();
-    });
-});
+    if (btnSwitchToManual) {
+        btnSwitchToManual.addEventListener('click', () => {
+            if (manualTab && typeof bootstrap !== 'undefined') {
+                const bsTab = new bootstrap.Tab(manualTab);
+                bsTab.show();
+            }
+        });
+    }
+
+    // Cleanup hook ketika halaman berpindah
+    window._cleanupCurrentView = () => {
+        stopScanner();
+    };
+
+    // Auto focus ke input NISN
+    if (manualInput) {
+        setTimeout(() => manualInput.focus(), 150);
+    }
+
+    // Sinkronkan status tombol Fullscreen
+    const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+    if (window.setEvotingFullscreenUI) {
+        window.setEvotingFullscreenUI(isFS);
+    }
+};
+
+// Initial run
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initVoterLoginView);
+} else {
+    window.initVoterLoginView();
+}
 </script>

@@ -90,6 +90,11 @@ document.body.classList.add('ballot-kiosk-active');
                                 type="button" 
                                 class="btn btn-sm btn-outline-secondary w-100 py-1.5 rounded-3 btn-view-vision"
                                 data-candidate-id="<?= (int)$cand['id'] ?>"
+                                data-candidate-number="0<?= Security::escape($cand['nomor_urut']) ?>"
+                                data-candidate-names="<?= Security::escape($cand['nama_ketua'] . ' & ' . $cand['nama_wakil']) ?>"
+                                data-candidate-visi="<?= htmlspecialchars((string)($cand['visi'] ?? 'Belum diisi'), ENT_QUOTES, 'UTF-8') ?>"
+                                data-candidate-misi="<?= htmlspecialchars((string)($cand['misi'] ?? 'Belum diisi'), ENT_QUOTES, 'UTF-8') ?>"
+                                onclick="if(window.handleBallotVisionClick){window.handleBallotVisionClick(this);}else{alert('Visi:\n'+this.getAttribute('data-candidate-visi')+'\n\nMisi:\n'+this.getAttribute('data-candidate-misi'));}"
                             >
                                 <i class="bi bi-file-text me-1"></i> Visi &amp; Misi Paslon 0<?= Security::escape($cand['nomor_urut']) ?>
                             </button>
@@ -100,6 +105,7 @@ document.body.classList.add('ballot-kiosk-active');
                                 data-candidate-id="<?= (int)$cand['id'] ?>"
                                 data-candidate-number="0<?= Security::escape($cand['nomor_urut']) ?>"
                                 data-candidate-names="<?= Security::escape($cand['nama_ketua'] . ' & ' . $cand['nama_wakil']) ?>"
+                                onclick="if(window.handleBallotVoteClick){window.handleBallotVoteClick('<?= (int)$cand['id'] ?>', '<?= Security::escape($cand['nama_ketua'] . ' & ' . $cand['nama_wakil']) ?>', '0<?= Security::escape($cand['nomor_urut']) ?>');}else{var form=document.getElementById('voteForm');if(form){document.getElementById('modalCandidateId').value='<?= (int)$cand['id'] ?>';if(confirm('Pilih Paslon 0<?= Security::escape($cand['nomor_urut']) ?>?')){form.submit();}}}"
                             >
                                 <i class="bi bi-check2-circle me-1"></i> PILIH PASLON 0<?= Security::escape($cand['nomor_urut']) ?>
                             </button>
@@ -118,146 +124,100 @@ document.body.classList.add('ballot-kiosk-active');
 </form>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const candidatesData = <?= json_encode($candidates, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?> || [];
+(function() {
+    function escapeHtmlBallot(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
 
-    // 1. Modal Lihat Visi & Misi Paslon
-    document.querySelectorAll('.btn-view-vision').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const candId = btn.getAttribute('data-candidate-id');
-            const cand = candidatesData.find(c => c.id == candId);
-            if (!cand) return;
-
-            const num = '0' + cand.nomor_urut;
-            const names = cand.nama_ketua + ' & ' + cand.nama_wakil;
-            const visi = cand.visi || 'Belum diisi';
-            const misi = cand.misi || 'Belum diisi';
-
-            function escapeHtml(str) {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
+    if (!window.handleBallotVisionClick) {
+        window.handleBallotVisionClick = function(btn) {
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
             }
-
-            const formattedVisi = escapeHtml(visi).replace(/\n/g, '<br>');
-            const formattedMisi = escapeHtml(misi).replace(/\n/g, '<br>');
+            if (btn && typeof btn.blur === 'function') {
+                btn.blur();
+            }
+            if (!btn) return;
+            var num = btn.getAttribute('data-candidate-number') || '01';
+            var names = btn.getAttribute('data-candidate-names') || 'Pasangan Calon';
+            var visi = btn.getAttribute('data-candidate-visi') || 'Belum diisi';
+            var misi = btn.getAttribute('data-candidate-misi') || 'Belum diisi';
+            var formattedVisi = escapeHtmlBallot(visi).replace(/\n/g, '<br>');
+            var formattedMisi = escapeHtmlBallot(misi).replace(/\n/g, '<br>');
 
             if (window.SwalPaper) {
                 window.SwalPaper.fire({
-                    title: `Visi & Misi Paslon ${num}`,
-                    html: `
-                        <div class="text-start py-2">
-                            <div class="text-center mb-3">
-                                <div class="paslon-badge mb-2 mx-auto" style="width: 48px; height: 48px; font-size: 1.25rem;">
-                                    ${num}
-                                </div>
-                                <h5 class="fw-bold text-dark mb-0">${escapeHtml(names)}</h5>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-uppercase small text-secondary mb-1">
-                                    <i class="bi bi-lightbulb-fill text-warning me-1"></i> Visi
-                                </h6>
-                                <div class="p-3 bg-light rounded-3 border small text-muted">
-                                    ${formattedVisi}
-                                </div>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold text-uppercase small text-secondary mb-1">
-                                    <i class="bi bi-check2-circle text-success me-1"></i> Misi
-                                </h6>
-                                <div class="p-3 bg-light rounded-3 border small text-muted" style="max-height: 220px; overflow-y: auto;">
-                                    ${formattedMisi}
-                                </div>
-                            </div>
-                        </div>
-                    `,
+                    title: 'Visi & Misi Paslon ' + num,
+                    html: '<div class="text-start py-2"><div class="text-center mb-3"><div class="paslon-badge mb-2 mx-auto" style="width: 48px; height: 48px; font-size: 1.25rem;">' + num + '</div><h5 class="fw-bold text-dark mb-0">' + escapeHtmlBallot(names) + '</h5></div><div class="mb-3"><h6 class="fw-bold text-uppercase small text-secondary mb-1"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Visi</h6><div class="p-3 bg-light rounded-3 border small text-muted">' + formattedVisi + '</div></div><div><h6 class="fw-bold text-uppercase small text-secondary mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Misi</h6><div class="p-3 bg-light rounded-3 border small text-muted" style="max-height: 220px; overflow-y: auto;">' + formattedMisi + '</div></div></div>',
                     confirmButtonText: 'Tutup',
-                    customClass: {
-                        popup: 'paper-swal-popup',
-                        confirmButton: 'swal2-confirm btn-paper-primary px-4'
-                    }
+                    focusConfirm: true,
+                    customClass: { popup: 'paper-swal-popup', confirmButton: 'swal2-confirm btn-paper-primary px-4' }
                 });
             } else {
-                alert(`Visi & Misi Paslon ${num} (${names}):\n\nVISI:\n${visi}\n\nMISI:\n${misi}`);
+                alert('Visi & Misi Paslon ' + num + ' (' + names + '):\n\nVISI:\n' + visi + '\n\nMISI:\n' + misi);
             }
-        });
-    });
+        };
+    }
 
-    // 2. Tombol Konfirmasi Pilihan Suara
-    document.querySelectorAll('.btn-vote-action').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const candidateId = btn.getAttribute('data-candidate-id');
-            const candidateNumber = btn.getAttribute('data-candidate-number');
-            const candidateNames = btn.getAttribute('data-candidate-names');
-
+    if (!window.handleBallotVoteClick) {
+        window.handleBallotVoteClick = function(candidateId, candidateNames, candidateNumber) {
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
             if (window.SwalPaper) {
                 window.SwalPaper.fire({
                     title: 'Konfirmasi Pilihan Anda',
-                    html: `
-                        <div class="py-2 text-center">
-                            <p class="text-muted mb-3">Apakah Anda yakin ingin memberikan suara kepada:</p>
-                            <div class="paslon-badge mb-3 mx-auto" style="width: 58px; height: 58px; font-size: 1.5rem;">
-                                ${candidateNumber}
-                            </div>
-                            <h4 class="fw-bold text-dark mb-3">${candidateNames}</h4>
-                            <div class="paper-swal-alert-warning p-3 rounded small text-start border">
-                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
-                                <strong>PENTING:</strong> Pilihan Anda bersifat final dan <strong>tidak dapat diubah</strong> setelah Anda menekan tombol konfirmasi.
-                            </div>
-                        </div>
-                    `,
+                    html: '<div class="py-2 text-center"><p class="text-muted mb-3">Apakah Anda yakin ingin memberikan suara kepada:</p><div class="paslon-badge mb-3 mx-auto" style="width: 58px; height: 58px; font-size: 1.5rem;">' + candidateNumber + '</div><h4 class="fw-bold text-dark mb-3">' + escapeHtmlBallot(candidateNames) + '</h4><div class="paper-swal-alert-warning p-3 rounded small text-start border"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i><strong>PENTING:</strong> Pilihan Anda bersifat final dan <strong>tidak dapat diubah</strong> setelah Anda menekan tombol konfirmasi.</div></div>',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: '<i class="bi bi-check-lg me-1"></i> Ya, Saya Yakin',
                     cancelButtonText: 'Batal / Periksa Kembali',
                     reverseButtons: true,
-                    customClass: {
-                        popup: 'paper-swal-popup',
-                        confirmButton: 'swal2-confirm btn-paper-vote px-4 py-2 me-2',
-                        cancelButton: 'swal2-cancel btn-paper-secondary px-4 py-2'
-                    }
-                }).then((result) => {
+                    focusConfirm: true,
+                    customClass: { popup: 'paper-swal-popup', confirmButton: 'swal2-confirm btn-paper-vote px-4 py-2 me-2', cancelButton: 'swal2-cancel btn-paper-secondary px-4 py-2' }
+                }).then(function(result) {
                     if (result.isConfirmed) {
-                        document.getElementById('modalCandidateId').value = candidateId;
-                        document.getElementById('voteForm').submit();
+                        if (window.submitBallotVoteAction) {
+                            window.submitBallotVoteAction(candidateId, candidateNames, candidateNumber);
+                        } else {
+                            var f = document.getElementById('voteForm');
+                            if (f) {
+                                document.getElementById('modalCandidateId').value = candidateId;
+                                f.submit();
+                            }
+                        }
                     }
                 });
             } else {
                 if (confirm('Apakah Anda yakin ingin memberikan suara kepada Paslon ' + candidateNumber + ' (' + candidateNames + ')? Pilihan tidak dapat diubah.')) {
-                    document.getElementById('modalCandidateId').value = candidateId;
-                    document.getElementById('voteForm').submit();
+                    if (window.submitBallotVoteAction) {
+                        window.submitBallotVoteAction(candidateId, candidateNames, candidateNumber);
+                    } else {
+                        var f = document.getElementById('voteForm');
+                        if (f) {
+                            document.getElementById('modalCandidateId').value = candidateId;
+                            f.submit();
+                        }
+                    }
                 }
             }
-        });
-    });
+        };
+    }
 
-    // 3. Toggle Fullscreen Native Kiosk Bilik Suara
-    const btnFS = document.getElementById('btnToggleBallotFS');
-    const fsIcon = document.getElementById('ballotFsIcon');
-
-    function updateBallotFSIcon() {
-        if (!fsIcon) return;
-        if (document.fullscreenElement) {
-            fsIcon.className = 'bi bi-fullscreen-exit';
-        } else {
-            fsIcon.className = 'bi bi-arrows-fullscreen';
+    window.initBallotView = function() {
+        var isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
+        if (window.setEvotingFullscreenUI) {
+            window.setEvotingFullscreenUI(isFS);
         }
-    }
+    };
 
-    if (btnFS) {
-        btnFS.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(() => {});
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                }
-            }
-        });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.initBallotView);
+    } else {
+        window.initBallotView();
     }
-
-    document.addEventListener('fullscreenchange', updateBallotFSIcon);
-});
+})();
 </script>

@@ -9,7 +9,8 @@ window.SwalPaper = typeof Swal !== 'undefined' ? Swal.mixin({
         confirmButton: 'swal2-confirm btn-paper-primary',
         cancelButton: 'swal2-cancel btn-paper-secondary'
     },
-    buttonsStyling: true
+    buttonsStyling: true,
+    returnFocus: false
 }) : null;
 
 // Toast SweetAlert2 Mixin
@@ -632,7 +633,9 @@ window.toggleEvotingFullscreen = function() {
     if (!isFS) {
         const root = document.documentElement;
         if (root.requestFullscreen) {
-            root.requestFullscreen().catch(() => {});
+            root.requestFullscreen().catch((err) => {
+                console.warn('Fullscreen request failed:', err);
+            });
         } else if (root.webkitRequestFullscreen) {
             root.webkitRequestFullscreen();
         }
@@ -653,36 +656,83 @@ window.setEvotingFullscreenUI = function(isFS) {
     const path = window.location.pathname;
     const isMonitoring = path.includes('/admin/monitoring');
     const isResults = path.includes('/admin/results');
+    const isVote = path.includes('/vote');
 
+    // Admin UI
     const fsIcon = document.getElementById('fsIcon');
     const fsText = document.getElementById('fsText');
     const btnFullscreen = document.getElementById('btnToggleFullscreen');
+
+    // Ballot Kiosk UI
+    const ballotFsIcon = document.getElementById('ballotFsIcon');
+    const btnToggleBallotFS = document.getElementById('btnToggleBallotFS');
+
+    // Login Voter Kiosk UI
+    const loginFsIcon = document.getElementById('loginFsIcon');
+    const loginFsText = document.getElementById('loginFsText');
+    const btnToggleLoginFS = document.getElementById('btnToggleLoginFS');
 
     if (isFS) {
         try { sessionStorage.setItem('evoting_fullscreen', '1'); } catch (e) {}
 
         if (isMonitoring) {
-            document.body.classList.remove('results-fs-active');
+            document.body.classList.remove('results-fs-active', 'ballot-kiosk-active');
             document.body.classList.add('monitoring-fs-active');
         } else if (isResults) {
-            document.body.classList.remove('monitoring-fs-active');
+            document.body.classList.remove('monitoring-fs-active', 'ballot-kiosk-active');
             document.body.classList.add('results-fs-active');
+        } else if (isVote) {
+            document.body.classList.remove('results-fs-active', 'monitoring-fs-active');
+            document.body.classList.add('ballot-kiosk-active');
         }
 
+        // Admin
         if (fsIcon) fsIcon.className = 'bi bi-fullscreen-exit me-1';
         if (fsText) fsText.textContent = 'Keluar Layar';
         if (btnFullscreen) {
             btnFullscreen.classList.replace('btn-paper-primary', 'btn-paper-secondary');
         }
+
+        // Ballot
+        if (ballotFsIcon) ballotFsIcon.className = 'bi bi-fullscreen-exit';
+        if (btnToggleBallotFS) {
+            btnToggleBallotFS.title = 'Keluar Layar Penuh';
+        }
+
+        // Login
+        if (loginFsIcon) loginFsIcon.className = 'bi bi-fullscreen-exit';
+        if (loginFsText) loginFsText.textContent = 'Keluar Layar';
+        if (btnToggleLoginFS) {
+            btnToggleLoginFS.classList.replace('btn-outline-secondary', 'btn-secondary');
+            btnToggleLoginFS.title = 'Keluar Mode Layar Penuh';
+        }
     } else {
         try { sessionStorage.removeItem('evoting_fullscreen'); } catch (e) {}
 
         document.body.classList.remove('monitoring-fs-active', 'results-fs-active');
+        if (!isVote) {
+            document.body.classList.remove('ballot-kiosk-active');
+        }
 
+        // Admin
         if (fsIcon) fsIcon.className = 'bi bi-arrows-fullscreen me-1';
         if (fsText) fsText.textContent = 'Layar Penuh';
         if (btnFullscreen) {
             btnFullscreen.classList.replace('btn-paper-secondary', 'btn-paper-primary');
+        }
+
+        // Ballot
+        if (ballotFsIcon) ballotFsIcon.className = 'bi bi-arrows-fullscreen';
+        if (btnToggleBallotFS) {
+            btnToggleBallotFS.title = 'Mode Layar Penuh Bilik Suara';
+        }
+
+        // Login
+        if (loginFsIcon) loginFsIcon.className = 'bi bi-arrows-fullscreen';
+        if (loginFsText) loginFsText.textContent = 'Layar Penuh';
+        if (btnToggleLoginFS) {
+            btnToggleLoginFS.classList.replace('btn-secondary', 'btn-outline-secondary');
+            btnToggleLoginFS.title = 'Mode Layar Penuh Bilik Suara';
         }
 
         if (window.location.search.includes('fs=1')) {
@@ -719,7 +769,7 @@ document.addEventListener('webkitfullscreenchange', () => {
 // Popstate (Back/Forward) handler during fullscreen
 window.addEventListener('popstate', (e) => {
     const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
-    if (isFS && (location.pathname.includes('/admin/monitoring') || location.pathname.includes('/admin/results'))) {
+    if (isFS && (location.pathname.includes('/admin/monitoring') || location.pathname.includes('/admin/results') || location.pathname.includes('/vote') || location.pathname === '/' || location.pathname.includes('/login'))) {
         window.seamlessNavigate(location.pathname);
     }
 });
@@ -750,7 +800,12 @@ window.seamlessNavigate = async function(targetUrl) {
         const newMain = doc.querySelector('main');
 
         if (currentMain && newMain) {
-            // Cleanup current view timers/charts
+            // Hilangkan fokus aktif saat ini agar tidak bentrok dengan autofocus browser
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+
+            // Cleanup current view timers/charts/scanner
             if (typeof window._cleanupCurrentView === 'function') {
                 window._cleanupCurrentView();
                 window._cleanupCurrentView = null;
@@ -766,25 +821,53 @@ window.seamlessNavigate = async function(targetUrl) {
             );
 
             if (targetUrl.includes('/admin/results')) {
-                document.body.classList.remove('monitoring-fs-active');
+                document.body.classList.remove('monitoring-fs-active', 'ballot-kiosk-active');
                 if (isFS) document.body.classList.add('results-fs-active');
 
-                // Execute inserted script elements
                 executeInsertedScripts(currentMain);
 
                 if (typeof window.initResultsView === 'function') {
                     window.initResultsView();
                 }
             } else if (targetUrl.includes('/admin/monitoring')) {
-                document.body.classList.remove('results-fs-active');
+                document.body.classList.remove('results-fs-active', 'ballot-kiosk-active');
                 if (isFS) document.body.classList.add('monitoring-fs-active');
 
-                // Execute inserted script elements
                 executeInsertedScripts(currentMain);
 
                 if (typeof window.initMonitoringView === 'function') {
                     window.initMonitoringView();
                 }
+            } else if (targetUrl.includes('/vote')) {
+                document.body.classList.remove('results-fs-active', 'monitoring-fs-active');
+                document.body.classList.add('ballot-kiosk-active');
+                if (isFS) {
+                    try { sessionStorage.setItem('evoting_fullscreen', '1'); } catch (e) {}
+                }
+
+                executeInsertedScripts(currentMain);
+
+                if (typeof window.initBallotView === 'function') {
+                    window.initBallotView();
+                }
+            } else if (targetUrl === '/' || targetUrl.includes('/login')) {
+                document.body.classList.remove('results-fs-active', 'monitoring-fs-active', 'ballot-kiosk-active');
+                if (isFS) {
+                    try { sessionStorage.setItem('evoting_fullscreen', '1'); } catch (e) {}
+                }
+
+                executeInsertedScripts(currentMain);
+
+                if (typeof window.initVoterLoginView === 'function') {
+                    window.initVoterLoginView();
+                }
+            } else {
+                executeInsertedScripts(currentMain);
+            }
+
+            // Sinkronkan UI tombol fullscreen
+            if (typeof window.setEvotingFullscreenUI === 'function') {
+                window.setEvotingFullscreenUI(isFS);
             }
         } else {
             window.location.href = targetUrl;
@@ -798,10 +881,285 @@ window.seamlessNavigate = async function(targetUrl) {
 function executeInsertedScripts(container) {
     const scripts = Array.from(container.querySelectorAll('script'));
     scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.textContent = oldScript.textContent;
-        oldScript.parentNode.replaceChild(newScript, oldScript);
+        if (oldScript.src) {
+            const alreadyLoaded = Array.from(document.querySelectorAll('script[src]')).some(
+                s => s !== oldScript && s.src === oldScript.src
+            );
+            if (alreadyLoaded) return;
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            document.head.appendChild(newScript);
+        } else {
+            try {
+                window.eval(oldScript.textContent);
+            } catch (e) {
+                console.error('Error executing inline script:', e);
+            }
+        }
     });
 }
+
+// ==========================================================================
+// 7. Global Handlers & Event Delegation untuk Bilik Suara (Surat Suara Digital)
+// ==========================================================================
+function escapeHtmlBallot(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+window.handleBallotVisionClick = function(btn) {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
+    if (btn && typeof btn.blur === 'function') {
+        btn.blur();
+    }
+    if (!btn) return;
+    const num = btn.getAttribute('data-candidate-number') || '01';
+    const names = btn.getAttribute('data-candidate-names') || 'Pasangan Calon';
+    const visi = btn.getAttribute('data-candidate-visi') || 'Belum diisi';
+    const misi = btn.getAttribute('data-candidate-misi') || 'Belum diisi';
+
+    const formattedVisi = escapeHtmlBallot(visi).replace(/\n/g, '<br>');
+    const formattedMisi = escapeHtmlBallot(misi).replace(/\n/g, '<br>');
+
+    if (window.SwalPaper) {
+        window.SwalPaper.fire({
+            title: `Visi & Misi Paslon ${num}`,
+            html: `
+                <div class="text-start py-2">
+                    <div class="text-center mb-3">
+                        <div class="paslon-badge mb-2 mx-auto" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                            ${num}
+                        </div>
+                        <h5 class="fw-bold text-dark mb-0">${escapeHtmlBallot(names)}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-uppercase small text-secondary mb-1">
+                            <i class="bi bi-lightbulb-fill text-warning me-1"></i> Visi
+                        </h6>
+                        <div class="p-3 bg-light rounded-3 border small text-muted">
+                            ${formattedVisi}
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-uppercase small text-secondary mb-1">
+                            <i class="bi bi-check2-circle text-success me-1"></i> Misi
+                        </h6>
+                        <div class="p-3 bg-light rounded-3 border small text-muted" style="max-height: 220px; overflow-y: auto;">
+                            ${formattedMisi}
+                        </div>
+                    </div>
+                </div>
+            `,
+            confirmButtonText: 'Tutup',
+            focusConfirm: true,
+            customClass: {
+                popup: 'paper-swal-popup',
+                confirmButton: 'swal2-confirm btn-paper-primary px-4'
+            }
+        });
+    } else {
+        alert(`Visi & Misi Paslon ${num} (${names}):\n\nVISI:\n${visi}\n\nMISI:\n${misi}`);
+    }
+};
+
+window.handleBallotVoteClick = function(candidateId, candidateNames, candidateNumber) {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
+    if (window.SwalPaper) {
+        window.SwalPaper.fire({
+            title: 'Konfirmasi Pilihan Anda',
+            html: `
+                <div class="py-2 text-center">
+                    <p class="text-muted mb-3">Apakah Anda yakin ingin memberikan suara kepada:</p>
+                    <div class="paslon-badge mb-3 mx-auto" style="width: 58px; height: 58px; font-size: 1.5rem;">
+                        ${candidateNumber}
+                    </div>
+                    <h4 class="fw-bold text-dark mb-3">${escapeHtmlBallot(candidateNames)}</h4>
+                    <div class="paper-swal-alert-warning p-3 rounded small text-start border">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                        <strong>PENTING:</strong> Pilihan Anda bersifat final dan <strong>tidak dapat diubah</strong> setelah Anda menekan tombol konfirmasi.
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-check-lg me-1"></i> Ya, Saya Yakin',
+            cancelButtonText: 'Batal / Periksa Kembali',
+            reverseButtons: true,
+            focusConfirm: true,
+            customClass: {
+                popup: 'paper-swal-popup',
+                confirmButton: 'swal2-confirm btn-paper-vote px-4 py-2 me-2',
+                cancelButton: 'swal2-cancel btn-paper-secondary px-4 py-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.submitBallotVoteAction(candidateId, candidateNames, candidateNumber);
+            }
+        });
+    } else {
+        if (confirm('Apakah Anda yakin ingin memberikan suara kepada Paslon ' + candidateNumber + ' (' + candidateNames + ')? Pilihan tidak dapat diubah.')) {
+            window.submitBallotVoteAction(candidateId, candidateNames, candidateNumber);
+        }
+    }
+};
+
+window.submitBallotVoteAction = async function(candidateId, candidateNames, candidateNumber) {
+    const voteForm = document.getElementById('voteForm');
+    let csrfToken = '';
+    if (voteForm) {
+        const csrfInput = voteForm.querySelector('input[name="_csrf_token"]');
+        if (csrfInput) csrfToken = csrfInput.value;
+    }
+
+    const formData = new FormData();
+    formData.set('candidate_id', candidateId);
+    if (csrfToken) {
+        formData.set('_csrf_token', csrfToken);
+    }
+
+    // Tampilkan indikator proses penyimpanan
+    if (window.SwalPaper) {
+        window.SwalPaper.fire({
+            title: 'Merekam Hak Suara...',
+            html: `
+                <div class="py-3 text-center">
+                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                    <div class="text-muted small">Menyimpan pilihan Paslon <strong>${candidateNumber}</strong> ke kotak suara digital...</div>
+                </div>
+            `,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            returnFocus: false
+        });
+    }
+
+    try {
+        const response = await fetch('/vote/submit', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data || !data.success) {
+            const errorMsg = (data && data.message) ? data.message : 'Gagal memproses suara. Silakan hubungi panitia pemilihan.';
+            if (window.PaperAlert) {
+                window.PaperAlert.error(errorMsg, 'Gagal Menyimpan Suara');
+            } else {
+                alert(errorMsg);
+            }
+            return;
+        }
+
+        // Tampilkan pesan apresiasi dan hitung mundur kembali ke login pemilih
+        if (window.SwalPaper) {
+            await window.SwalPaper.fire({
+                icon: 'success',
+                title: 'Suara Anda Berhasil Direkam!',
+                html: `
+                    <div class="py-2 text-center">
+                        <p class="fs-5 fw-bold text-dark mb-1">Terima kasih telah berpartisipasi!</p>
+                        <p class="text-muted small mb-3">Hak suara Anda telah tersimpan secara sah, aman, dan rahasia.</p>
+                        <div class="p-2.5 bg-light rounded-pill border small text-secondary d-inline-flex align-items-center gap-2 px-3">
+                            <i class="bi bi-clock-history text-primary"></i>
+                            <span>Kembali ke layar masuk dalam <strong id="kioskCountdownSec" class="text-dark">3</strong> detik...</span>
+                        </div>
+                    </div>
+                `,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Selesai Lebih Cepat',
+                returnFocus: false,
+                customClass: {
+                    popup: 'paper-swal-popup',
+                    confirmButton: 'swal2-confirm btn-paper-vote px-4 py-2'
+                },
+                didOpen: () => {
+                    let sec = 3;
+                    const secEl = document.getElementById('kioskCountdownSec');
+                    const interval = setInterval(() => {
+                        sec--;
+                        if (secEl && sec > 0) secEl.textContent = sec;
+                        if (sec <= 0) clearInterval(interval);
+                    }, 1000);
+                }
+            });
+        }
+
+        // Lepas fokus sebelum navigasi agar tidak memicu blocked autofocus
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+
+        // Navigasi kembali ke halaman login pemilih secara mulus TANPA reload (Fullscreen tetap terjaga)
+        if (window.seamlessNavigate) {
+            await window.seamlessNavigate(data.redirect || '/');
+        } else {
+            window.location.href = data.redirect || '/';
+        }
+    } catch (err) {
+        console.error('Submit vote error:', err);
+        if (voteForm) {
+            const modalCand = document.getElementById('modalCandidateId');
+            if (modalCand) modalCand.value = candidateId;
+            voteForm.submit();
+        }
+    }
+};
+
+// Delegasi Event Global: Menjamin semua klik tombol di bilik suara bekerja 100% tanpa bergantung timing script inline
+document.addEventListener('click', function(e) {
+    // 1. Tombol Pilih Paslon
+    const btnVote = e.target.closest('.btn-vote-action');
+    if (btnVote) {
+        e.preventDefault();
+        if (typeof btnVote.blur === 'function') btnVote.blur();
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+        const candidateId = btnVote.getAttribute('data-candidate-id');
+        const candidateNumber = btnVote.getAttribute('data-candidate-number');
+        const candidateNames = btnVote.getAttribute('data-candidate-names');
+        if (typeof window.handleBallotVoteClick === 'function') {
+            window.handleBallotVoteClick(candidateId, candidateNames, candidateNumber);
+        }
+        return;
+    }
+
+    // 2. Tombol Lihat Visi & Misi Paslon
+    const btnVision = e.target.closest('.btn-view-vision');
+    if (btnVision) {
+        e.preventDefault();
+        if (typeof btnVision.blur === 'function') btnVision.blur();
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+        if (typeof window.handleBallotVisionClick === 'function') {
+            window.handleBallotVisionClick(btnVision);
+        }
+        return;
+    }
+
+    // 3. Tombol Layar Penuh di Header Kiosk Bilik Suara
+    const btnFS = e.target.closest('#btnToggleBallotFS');
+    if (btnFS) {
+        e.preventDefault();
+        if (typeof window.toggleEvotingFullscreen === 'function') {
+            window.toggleEvotingFullscreen();
+        }
+        return;
+    }
+});
 

@@ -46,17 +46,31 @@ class VotingController extends Controller
         $voterId = (int) Session::get('voter_id');
         $candidateId = (int) ($_POST['candidate_id'] ?? 0);
 
-        if ($candidateId <= 0) {
-            Session::setFlash('error', 'Silakan tentukan pasangan calon pilihan Anda.');
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+               || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
+
+        $sendError = function (string $message) use ($isAjax) {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => $message
+                ]);
+                exit;
+            }
+            Session::setFlash('error', $message);
             $this->redirect('/vote');
+        };
+
+        if ($candidateId <= 0) {
+            $sendError('Silakan tentukan pasangan calon pilihan Anda.');
         }
 
         $candidateModel = new Candidate();
         $candidate = $candidateModel->findById($candidateId);
 
         if (!$candidate || (int) $candidate['status'] !== 1) {
-            Session::setFlash('error', 'Pasangan calon yang dipilih tidak valid atau tidak aktif.');
-            $this->redirect('/vote');
+            $sendError('Pasangan calon yang dipilih tidak valid atau tidak aktif.');
         }
 
         $voteModel = new Vote();
@@ -68,10 +82,31 @@ class VotingController extends Controller
             
             // Buka sesi baru hanya untuk membawa flash message ke halaman login
             Session::start();
-            Session::setFlash('success', 'Terima kasih! Suara Anda telah berhasil direkam secara aman.');
+            $msg = 'Terima kasih! Suara Anda telah berhasil direkam secara aman.';
+            Session::setFlash('success', $msg);
+
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => $msg,
+                    'redirect' => '/'
+                ]);
+                exit;
+            }
+
             $this->redirect('/');
         } else {
-            Session::setFlash('error', 'Gagal memproses suara. Anda mungkin sudah tercatat memilih atau terjadi gangguan.');
+            $err = 'Gagal memproses suara. Anda mungkin sudah tercatat memilih atau terjadi gangguan.';
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => $err
+                ]);
+                exit;
+            }
+            Session::setFlash('error', $err);
             $this->redirect('/');
         }
     }

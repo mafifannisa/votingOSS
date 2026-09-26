@@ -35,16 +35,29 @@ class AuthController extends Controller
         $this->validateCsrf();
 
         $nisn = trim($_POST['nisn'] ?? '');
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+               || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
 
-        // Validasi format NISN (hanya digit, minimal 8 - 12 karakter)
-        if (empty($nisn)) {
-            Session::setFlash('error', 'Silakan masukkan NISN Anda.');
+        $sendError = function (string $message) use ($isAjax) {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => $message
+                ]);
+                exit;
+            }
+            Session::setFlash('error', $message);
             $this->redirect('/');
+        };
+
+        // Validasi format NISN (hanya digit, minimal 8 - 15 karakter)
+        if (empty($nisn)) {
+            $sendError('Silakan masukkan NISN Anda.');
         }
 
         if (!preg_match('/^[0-9]{8,15}$/', $nisn)) {
-            Session::setFlash('error', 'Format NISN tidak valid. Masukkan angka NISN yang benar.');
-            $this->redirect('/');
+            $sendError('Format NISN tidak valid. Masukkan angka NISN yang benar.');
         }
 
         $nisnHash = Security::hashNisn($nisn);
@@ -52,13 +65,11 @@ class AuthController extends Controller
         $voter = $voterModel->findByNisnHash($nisnHash);
 
         if (!$voter) {
-            Session::setFlash('error', 'NISN tidak terdaftar dalam DPT (Daftar Pemilih Tetap).');
-            $this->redirect('/');
+            $sendError('NISN tidak terdaftar dalam DPT (Daftar Pemilih Tetap).');
         }
 
         if ((int) $voter['has_voted'] === 1) {
-            Session::setFlash('error', 'NISN ini sudah digunakan untuk memilih. Pemilihan hanya dapat dilakukan satu kali.');
-            $this->redirect('/');
+            $sendError('NISN ini sudah digunakan untuk memilih. Pemilihan hanya dapat dilakukan satu kali.');
         }
 
         // Regenerasi sesi untuk mencegah session fixation
@@ -67,6 +78,20 @@ class AuthController extends Controller
         Session::set('voter_nama', $voter['nama']);
         Session::set('voter_kelas', $voter['kelas']);
         Session::set('voter_jurusan', $voter['jurusan']);
+
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'redirect' => '/vote',
+                'voter' => [
+                    'nama' => $voter['nama'],
+                    'kelas' => $voter['kelas'],
+                    'jurusan' => $voter['jurusan']
+                ]
+            ]);
+            exit;
+        }
 
         $this->redirect('/vote');
     }
