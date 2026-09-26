@@ -19,10 +19,10 @@ use App\Core\Security;
 
             <div class="text-center mb-4">
                 <div class="mb-3">
-                    <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 84px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));">
+                    <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 84px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));">
                 </div>
                 <h3 class="fw-bold mb-1">Masuk Pemilih</h3>
-                <p class="text-muted small">Pemilihan Ketua & Wakil Ketua OSIS Periode 2026/2027</p>
+                <p class="text-muted small"><?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua & Wakil Ketua OSIS Periode 2026/2027') ?></p>
             </div>
 
             <!-- Tab Pemilihan Metode Masuk -->

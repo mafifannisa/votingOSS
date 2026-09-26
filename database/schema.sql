@@ -10,6 +10,10 @@ CREATE TABLE IF NOT EXISTS admins (
 
 CREATE TABLE IF NOT EXISTS election_config (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    app_name VARCHAR(150) NOT NULL DEFAULT 'E-VOTING OSIS',
+    app_logo VARCHAR(255) NULL DEFAULT '/assets/images/Logo_OSIS.svg',
+    footer_text VARCHAR(255) NOT NULL DEFAULT '© 2026 Pemilihan Ketua OSIS • Sistem E-Voting Paper Card',
+    footer_logo VARCHAR(255) NULL DEFAULT '/assets/images/Logo_OSIS.svg',
     election_name VARCHAR(255) NOT NULL,
     result_code_hash VARCHAR(255) NOT NULL,
     status TINYINT(1) NOT NULL DEFAULT 1,

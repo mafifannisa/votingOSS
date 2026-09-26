@@ -8,8 +8,8 @@ use App\Core\Security;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= Security::escape($pageTitle ?? 'Cetak Kartu Pemilih DPT (Square) - E-Voting OSIS') ?></title>
     <!-- Favicon OSIS -->
-    <link rel="icon" type="image/svg+xml" href="/assets/images/Logo_OSIS.svg">
-    <link rel="alternate icon" href="/assets/images/Logo_OSIS.svg">
+    <link rel="icon" type="image/svg+xml" href="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>">
+    <link rel="alternate icon" href="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>">
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -352,10 +352,10 @@ use App\Core\Security;
                             <div class="voter-card-square">
                                 <!-- Card Header -->
                                 <div class="card-header-mini">
-                                    <img src="/assets/images/Logo_OSIS.svg" alt="OSIS">
+                                    <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo">
                                     <div class="card-header-titles">
                                         <div class="card-header-title">KARTU PEMILIH DPT</div>
-                                        <div class="card-header-sub">E-VOTING OSIS</div>
+                                        <div class="card-header-sub"><?= Security::escape($appName ?? 'E-VOTING OSIS') ?></div>
                                     </div>
                                 </div>
 

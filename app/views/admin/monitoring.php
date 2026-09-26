@@ -15,7 +15,7 @@ use App\Core\Security;
     <!-- 1. HEADER TOOLBAR -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-1 pb-1">
         <div class="d-flex align-items-center gap-2.5">
-            <img src="/assets/images/Logo_OSIS.svg" alt="OSIS" style="height: 36px; width: auto; object-fit: contain;">
+            <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 36px; width: auto; object-fit: contain;">
             <div>
                 <div class="d-flex align-items-center gap-2">
                     <h4 class="fw-bold mb-0 text-dark">Pemantauan Suara Masuk</h4>

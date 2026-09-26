@@ -4,7 +4,7 @@ use App\Core\Security;
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div class="d-flex align-items-center gap-3">
-        <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 52px; width: auto; object-fit: contain;">
+        <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 52px; width: auto; object-fit: contain;">
         <div>
             <h2 class="fw-bold mb-1">Dashboard Panitia</h2>
             <p class="text-muted mb-0"><?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua OSIS') ?></p>
@@ -147,6 +147,9 @@ use App\Core\Security;
                 </a>
                 <a href="/admin/candidates/create" class="btn btn-paper-secondary text-start py-2">
                     <i class="bi bi-person-badge me-2 text-warning"></i> Tambah Paslon Baru
+                </a>
+                <a href="/admin/settings" class="btn btn-paper-secondary text-start py-2">
+                    <i class="bi bi-gear-wide-connected me-2 text-primary"></i> Pengaturan Tampilan & Footer
                 </a>
                 <a href="/admin/backup" class="btn btn-paper-secondary text-start py-2">
                     <i class="bi bi-database-gear me-2 text-info"></i> Backup & Restore Database

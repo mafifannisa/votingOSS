@@ -7,10 +7,10 @@ use App\Core\Security;
         <div class="paper-card shadow-sm p-4 p-md-5">
             <div class="text-center mb-4">
                 <div class="mb-3">
-                    <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 80px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));">
+                    <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 80px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));">
                 </div>
                 <h3 class="fw-bold mb-1">Login Panitia</h3>
-                <p class="text-muted small">Panel Administrasi E-Voting OSIS</p>
+                <p class="text-muted small">Panel Administrasi <?= Security::escape($appName ?? 'E-Voting OSIS') ?></p>
             </div>
 
             <form action="/admin/login/process" method="POST" autocomplete="off">

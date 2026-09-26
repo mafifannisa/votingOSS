@@ -111,12 +111,30 @@ class Security
             'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',
             'png' => 'image/png',
-            'webp' => 'image/webp'
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml'
         ];
 
-        $ext = array_search($mime, $allowedMimes, true);
+        // Normalisasi format jika file SVG terdeteksi mime type umum
+        if ($mime === 'image/svg' || $mime === 'image/svg+xml') {
+            $ext = 'svg';
+        } else {
+            $ext = array_search($mime, $allowedMimes, true);
+        }
+
         if ($ext === false) {
-            return [false, 'Format file tidak diizinkan. Hanya JPG, PNG, dan WEBP yang diperbolehkan.', ''];
+            return [false, 'Format file tidak diizinkan. Hanya JPG, PNG, WEBP, dan SVG yang diperbolehkan.', ''];
+        }
+
+        // Sanitasi khusus untuk file SVG guna mencegah Stored XSS
+        if ($ext === 'svg') {
+            $svgContent = @file_get_contents($file['tmp_name']);
+            if ($svgContent === false || !str_contains($svgContent, '<svg')) {
+                return [false, 'File SVG tidak valid.', ''];
+            }
+            if (preg_match('/<script|javascript:|data:text\/html|xlink:href=["\']javascript:/i', $svgContent)) {
+                return [false, 'File SVG mengandung elemen skrip yang dilarang demi keamanan.', ''];
+            }
         }
 
         return [true, '', $ext];

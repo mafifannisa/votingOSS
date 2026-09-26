@@ -11,6 +11,29 @@ abstract class Controller
      */
     protected function render(string $view, array $data = [], ?string $layout = 'main'): void
     {
+        $electionModel = new \App\Models\Election();
+        $electionConfig = $electionModel->getConfig();
+
+        $appName = $electionConfig['app_name'] ?? 'E-VOTING OSIS';
+        $appLogo = $electionConfig['app_logo'] ?? '/assets/images/Logo_OSIS.svg';
+        $footerText = $electionConfig['footer_text'] ?? '© 2026 Pemilihan Ketua OSIS • Sistem E-Voting Paper Card';
+        $footerLogo = $electionConfig['footer_logo'] ?? '/assets/images/Logo_OSIS.svg';
+
+        $defaultData = [
+            'electionConfig' => $electionConfig,
+            'appName' => $appName,
+            'appLogo' => $appLogo,
+            'footerText' => $footerText,
+            'footerLogo' => $footerLogo,
+        ];
+
+        // Sinkronkan nama aplikasi pada judul halaman browser
+        if (isset($data['pageTitle']) && is_string($data['pageTitle'])) {
+            $data['pageTitle'] = str_replace(['- E-Voting OSIS', '- E-VOTING OSIS'], '- ' . $appName, $data['pageTitle']);
+        }
+
+        $data = array_merge($defaultData, $data);
+
         extract($data);
 
         $viewPath = __DIR__ . '/../views/' . $view . '.php';

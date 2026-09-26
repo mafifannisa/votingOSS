@@ -12,11 +12,11 @@ document.body.classList.add('ballot-kiosk-active');
     <!-- 1. Header Kiosk Surat Suara -->
     <header class="ballot-kiosk-header">
         <div class="d-flex align-items-center gap-2.5">
-            <img src="/assets/images/Logo_OSIS.svg" alt="OSIS" style="height: 38px; width: auto; object-fit: contain;">
+            <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 38px; width: auto; object-fit: contain;">
             <div>
                 <h4 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem; letter-spacing: -0.01em;">Surat Suara Digital</h4>
                 <small class="text-muted d-block" style="font-size: 0.76rem;">
-                    Pemilihan Ketua &amp; Wakil Ketua OSIS Periode 2026/2027
+                    <?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua & Wakil Ketua OSIS Periode 2026/2027') ?>
                 </small>
             </div>
         </div>

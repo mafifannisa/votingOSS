@@ -7,10 +7,10 @@ use App\Core\Security;
         <div class="col-lg-11 col-xl-10 p-0">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2.5">
-                    <img src="/assets/images/Logo_OSIS.svg" alt="OSIS" style="height: 36px; width: auto; object-fit: contain;">
+                    <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 36px; width: auto; object-fit: contain;">
                     <div>
                         <h3 class="fw-bold mb-0 text-dark">Hasil Perolehan Suara</h3>
-                        <p class="text-muted small mb-0">Rapat Pleno & Pengumuman Resmi Pemilihan Ketua OSIS</p>
+                        <p class="text-muted small mb-0"><?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua OSIS') ?></p>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -42,7 +42,7 @@ use App\Core\Security;
                 <div class="col-md-6 col-lg-5">
                     <div class="paper-card p-4 p-md-5 text-center shadow-sm">
                         <div class="mb-3">
-                            <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 75px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));">
+                            <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 75px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));">
                         </div>
                         <h4 class="fw-bold mb-2">Akses Terkunci</h4>
                         <p class="text-muted small mb-4">
@@ -119,10 +119,10 @@ use App\Core\Security;
             <div id="resultsContainer" style="display: none;">
                 <div class="alert alert-success border-0 shadow-sm p-4 text-center mb-4">
                     <div class="mb-2">
-                        <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 64px; width: auto; object-fit: contain;">
+                        <img src="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>" alt="Logo" style="height: 64px; width: auto; object-fit: contain;">
                     </div>
                     <h3 class="fw-bold mb-1"><i class="bi bi-check-circle-fill me-2"></i> HASIL AKHIR REKAPITULASI RESMI</h3>
-                    <p class="mb-0 text-muted">Pemilihan Ketua & Wakil Ketua OSIS Periode 2026/2027</p>
+                    <p class="mb-0 text-muted"><?= Security::escape($electionConfig['election_name'] ?? 'Pemilihan Ketua & Wakil Ketua OSIS Periode 2026/2027') ?></p>
                 </div>
 
                 <!-- Ringkasan Statistik Rekap -->

@@ -19,10 +19,10 @@ $cssVer = file_exists($cssFile) ? (string) filemtime($cssFile) : (string) time()
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= Security::escape($pageTitle ?? 'E-Voting OSIS') ?></title>
+    <title><?= Security::escape($pageTitle ?? ($appName ?? 'E-Voting OSIS')) ?></title>
     <!-- Favicon OSIS -->
-    <link rel="icon" type="image/svg+xml" href="/assets/images/Logo_OSIS.svg">
-    <link rel="alternate icon" href="/assets/images/Logo_OSIS.svg">
+    <link rel="icon" type="image/svg+xml" href="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>">
+    <link rel="alternate icon" href="<?= Security::escape($appLogo ?? '/assets/images/Logo_OSIS.svg') ?>">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -60,8 +60,10 @@ $cssVer = file_exists($cssFile) ? (string) filemtime($cssFile) : (string) time()
     <nav class="navbar navbar-expand-lg navbar-paper py-3 sticky-top">
         <div class="container">
             <a class="navbar-brand navbar-brand-paper" href="/">
-                <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" class="navbar-logo me-2" style="height: 38px; width: auto; object-fit: contain;">
-                <span>E-VOTING OSIS</span>
+                <?php if (!empty($appLogo)): ?>
+                    <img src="<?= Security::escape($appLogo) ?>" alt="Logo" class="navbar-logo me-2" style="height: 38px; width: auto; object-fit: contain;">
+                <?php endif; ?>
+                <span><?= Security::escape($appName ?? 'E-VOTING OSIS') ?></span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,6 +101,11 @@ $cssVer = file_exists($cssFile) ? (string) filemtime($cssFile) : (string) time()
                         <li class="nav-item">
                             <a class="nav-link fw-semibold" href="/admin/backup">
                                 <i class="bi bi-database-gear me-1"></i> Backup & Restore
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/settings') ? 'active text-primary' : '' ?>" href="/admin/settings">
+                                <i class="bi bi-gear me-1"></i> Pengaturan
                             </a>
                         </li>
                         <li class="nav-item ms-lg-2">
@@ -161,9 +168,11 @@ $cssVer = file_exists($cssFile) ? (string) filemtime($cssFile) : (string) time()
 
     <!-- Footer -->
     <footer class="py-3 text-center text-muted border-top bg-white mt-auto">
-        <div class="container small d-flex align-items-center justify-content-center gap-2">
-            <img src="/assets/images/Logo_OSIS.svg" alt="Logo OSIS" style="height: 22px; width: auto; object-fit: contain; vertical-align: middle;">
-            <span>&copy; <?= date('Y') ?> Pemilihan Ketua OSIS &bull; Sistem E-Voting Paper Card</span>
+        <div class="container small d-flex align-items-center justify-content-center gap-2 flex-wrap">
+            <?php if (!empty($footerLogo)): ?>
+                <img src="<?= Security::escape($footerLogo) ?>" alt="Logo Footer" style="height: 22px; width: auto; object-fit: contain; vertical-align: middle;">
+            <?php endif; ?>
+            <span><?= Security::escape($footerText ?? ('© ' . date('Y') . ' Pemilihan Ketua OSIS • Sistem E-Voting Paper Card')) ?></span>
         </div>
     </footer>
 

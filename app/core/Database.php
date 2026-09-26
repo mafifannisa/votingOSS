@@ -12,7 +12,7 @@ class Database
 {
     private static ?PDO $instance = null;
     private static bool $healed = false;
-    private const CURRENT_SCHEMA_VERSION = '2026_09_v2';
+    private const CURRENT_SCHEMA_VERSION = '2026_09_v3';
 
     private function __construct() {}
     private function __clone() {}
@@ -116,18 +116,42 @@ class Database
             // 2. Periksa dan perbaiki tabel 'election_config'
             $pdo->exec("CREATE TABLE IF NOT EXISTS `election_config` (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `app_name` VARCHAR(150) NOT NULL DEFAULT 'E-VOTING OSIS',
+                `app_logo` VARCHAR(255) NULL DEFAULT '/assets/images/Logo_OSIS.svg',
+                `footer_text` VARCHAR(255) NOT NULL DEFAULT '© 2026 Pemilihan Ketua OSIS • Sistem E-Voting Paper Card',
+                `footer_logo` VARCHAR(255) NULL DEFAULT '/assets/images/Logo_OSIS.svg',
                 `election_name` VARCHAR(255) NOT NULL,
                 `result_code_hash` VARCHAR(255) NOT NULL,
                 `status` TINYINT(1) NOT NULL DEFAULT 1,
                 `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
-            // Pastikan kolom result_code_hash ada
+            // Pastikan kolom-kolom election_config lengkap
             $cfgColsStmt = $pdo->query("SHOW COLUMNS FROM `election_config`");
             $cfgCols = $cfgColsStmt ? $cfgColsStmt->fetchAll(PDO::FETCH_COLUMN) : [];
             if (!in_array('result_code_hash', $cfgCols, true)) {
                 try {
                     $pdo->exec("ALTER TABLE `election_config` ADD COLUMN `result_code_hash` VARCHAR(255) NOT NULL DEFAULT '' AFTER `election_name`");
+                } catch (\Throwable $ignore) {}
+            }
+            if (!in_array('app_name', $cfgCols, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE `election_config` ADD COLUMN `app_name` VARCHAR(150) NOT NULL DEFAULT 'E-VOTING OSIS' AFTER `id`");
+                } catch (\Throwable $ignore) {}
+            }
+            if (!in_array('app_logo', $cfgCols, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE `election_config` ADD COLUMN `app_logo` VARCHAR(255) NULL DEFAULT '/assets/images/Logo_OSIS.svg' AFTER `app_name`");
+                } catch (\Throwable $ignore) {}
+            }
+            if (!in_array('footer_text', $cfgCols, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE `election_config` ADD COLUMN `footer_text` VARCHAR(255) NOT NULL DEFAULT '© 2026 Pemilihan Ketua OSIS • Sistem E-Voting Paper Card' AFTER `app_logo`");
+                } catch (\Throwable $ignore) {}
+            }
+            if (!in_array('footer_logo', $cfgCols, true)) {
+                try {
+                    $pdo->exec("ALTER TABLE `election_config` ADD COLUMN `footer_logo` VARCHAR(255) NULL DEFAULT '/assets/images/Logo_OSIS.svg' AFTER `footer_text`");
                 } catch (\Throwable $ignore) {}
             }
 
@@ -136,8 +160,16 @@ class Database
                 $cfgCount = $pdo->query("SELECT COUNT(*) FROM `election_config` WHERE `id` = 1");
                 if ($cfgCount && (int)$cfgCount->fetchColumn() === 0) {
                     $defaultHash = '$2y$12$NRkWAwvyfXBAJSoIAM8fQOKittBkKVRJ02l5X7O2qUrkdNESwzLeO'; // default 'osis2026'
-                    $stmt = $pdo->prepare("INSERT INTO `election_config` (`id`, `election_name`, `result_code_hash`, `status`) VALUES (1, 'Pemilihan Ketua & Wakil Ketua OSIS 2026/2027', ?, 1)");
+                    $stmt = $pdo->prepare("INSERT INTO `election_config` (`id`, `app_name`, `app_logo`, `footer_text`, `footer_logo`, `election_name`, `result_code_hash`, `status`) VALUES (1, 'E-VOTING OSIS', '/assets/images/Logo_OSIS.svg', '© 2026 Pemilihan Ketua OSIS • Sistem E-Voting Paper Card', '/assets/images/Logo_OSIS.svg', 'Pemilihan Ketua & Wakil Ketua OSIS 2026/2027', ?, 1)");
                     $stmt->execute([$defaultHash]);
+                } else {
+                    $pdo->exec("UPDATE `election_config` SET 
+                        `app_name` = COALESCE(NULLIF(`app_name`, ''), 'E-VOTING OSIS'),
+                        `app_logo` = COALESCE(NULLIF(`app_logo`, ''), '/assets/images/Logo_OSIS.svg'),
+                        `footer_text` = COALESCE(NULLIF(`footer_text`, ''), '© 2026 Pemilihan Ketua OSIS • Sistem E-Voting Paper Card'),
+                        `footer_logo` = COALESCE(NULLIF(`footer_logo`, ''), '/assets/images/Logo_OSIS.svg')
+                        WHERE `id` = 1
+                    ");
                 }
             } catch (\Throwable $ignore) {}
 

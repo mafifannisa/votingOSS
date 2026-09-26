@@ -11,6 +11,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\InstallController;
 use App\Controllers\MonitoringController;
 use App\Controllers\ResultController;
+use App\Controllers\SettingsController;
 use App\Controllers\VoterController;
 use App\Controllers\VotingController;
 
@@ -76,3 +77,8 @@ $router->get('/admin/backup', [BackupController::class, 'index']);
 $router->get('/admin/backup/export', [BackupController::class, 'export']);
 $router->post('/admin/backup/restore', [BackupController::class, 'restore']);
 $router->post('/admin/backup/reset-votes', [BackupController::class, 'resetVotes']);
+
+// Pengaturan Identitas & Footer Aplikasi
+$router->get('/admin/settings', [SettingsController::class, 'index']);
+$router->post('/admin/settings/update', [SettingsController::class, 'update']);
+$router->post('/admin/settings/reset', [SettingsController::class, 'resetDefaults']);
