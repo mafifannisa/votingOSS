@@ -67,7 +67,7 @@ use App\Core\Security;
                                     autofocus
                                 >
                                 <div class="form-text small text-muted mt-2">
-                                    <i class="bi bi-key-fill me-1"></i>Kode otorisasi default: <strong>osis2026</strong>
+                                    <i class="bi bi-key-fill me-1"></i>Masukkan kode otorisasi resmi panitia untuk membuka hasil.
                                 </div>
                             </div>
 

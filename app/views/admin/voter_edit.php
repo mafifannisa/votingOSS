@@ -108,7 +108,7 @@ use App\Core\Security;
                                    name="access_code" 
                                    id="resetEditAccessCode" 
                                    class="form-control form-control-paper" 
-                                   placeholder="Masukkan kode akses (osis2026)" 
+                                   placeholder="Masukkan kode akses keamanan" 
                                    required 
                                    autocomplete="current-password">
                             <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="resetEditAccessCode" title="Lihat / Sembunyikan Kode">
@@ -116,7 +116,7 @@ use App\Core\Security;
                             </button>
                         </div>
                         <div class="form-text small text-muted">
-                            <i class="bi bi-shield-lock me-1"></i>Ketik <strong>osis2026</strong> untuk mengonfirmasi reset status.
+                            <i class="bi bi-shield-lock me-1"></i>Masukkan kode akses resmi untuk mengonfirmasi reset status.
                         </div>
                     </div>
                 </div>

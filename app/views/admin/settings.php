@@ -350,7 +350,7 @@ if (empty($currentFooterLogo)) {
                             >
                         </div>
                         <div class="form-text small">
-                            Kode akses ini digunakan panitia untuk membuka perolehan suara di layar Rapat Pleno (default awal: <code>osis2026</code>).
+                            Kode akses ini digunakan panitia untuk membuka perolehan suara di layar Rapat Pleno dan otorisasi tindakan sensitif.
                         </div>
                     </div>
                 </div>

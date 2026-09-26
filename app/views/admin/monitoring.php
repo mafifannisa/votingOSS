@@ -229,7 +229,7 @@ use App\Core\Security;
                             </button>
                         </div>
                         <div class="form-text small text-muted text-center mt-2">
-                            <i class="bi bi-key-fill me-1"></i>Ketik <strong>osis2026</strong> untuk membuka hasil suara paslon.
+                            <i class="bi bi-key-fill me-1"></i>Masukkan kode akses resmi untuk membuka hasil suara paslon.
                         </div>
                     </div>
                 </div>

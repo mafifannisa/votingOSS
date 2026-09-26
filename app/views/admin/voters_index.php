@@ -277,7 +277,7 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
                                    name="access_code" 
                                    id="resetSingleAccessCode" 
                                    class="form-control form-control-paper" 
-                                   placeholder="Masukkan kode akses (osis2026)" 
+                                   placeholder="Masukkan kode akses keamanan" 
                                    required 
                                    autocomplete="current-password">
                             <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="resetSingleAccessCode" title="Lihat / Sembunyikan Kode">
@@ -285,7 +285,7 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
                             </button>
                         </div>
                         <div class="form-text small text-muted">
-                            <i class="bi bi-shield-lock me-1"></i>Ketik <strong>osis2026</strong> untuk mengonfirmasi reset status.
+                            <i class="bi bi-shield-lock me-1"></i>Masukkan kode akses resmi untuk mengonfirmasi reset status.
                         </div>
                     </div>
                 </div>
@@ -337,7 +337,7 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
                                    name="access_code" 
                                    id="resetAllAccessCode" 
                                    class="form-control form-control-paper" 
-                                   placeholder="Masukkan kode akses (osis2026)" 
+                                   placeholder="Masukkan kode akses keamanan" 
                                    required 
                                    autocomplete="current-password">
                             <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="resetAllAccessCode" title="Lihat / Sembunyikan Kode">
@@ -345,7 +345,7 @@ $toRecord = min(($page - 1) * $limit + count($voters), $totalRecords);
                             </button>
                         </div>
                         <div class="form-text small text-muted">
-                            <i class="bi bi-shield-lock me-1"></i>Ketik <strong>osis2026</strong> untuk mengonfirmasi reset seluruh pemilih.
+                            <i class="bi bi-shield-lock me-1"></i>Masukkan kode akses resmi untuk mengonfirmasi reset seluruh pemilih.
                         </div>
                     </div>
                 </div>
