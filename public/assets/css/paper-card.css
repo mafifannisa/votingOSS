@@ -81,11 +81,13 @@ body.bg-paper {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center 52%;
+    transform: none;
     transition: transform 0.3s ease;
 }
 
 .paper-card-hover:hover .candidate-photo {
-    transform: scale(1.02);
+    transform: scale(1.04);
 }
 
 /* Buttons */
@@ -1324,9 +1326,9 @@ body:has(.ballot-kiosk-wrapper) main {
 
 /* Foto Paslon Responsif Sesuai Tinggi Layar */
 .ballot-photo-box {
-    flex: 1 1 0%;
-    min-height: 90px;
-    max-height: 240px;
+    flex: 1.4 1 0%;
+    min-height: 170px;
+    max-height: 280px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1340,7 +1342,14 @@ body:has(.ballot-kiosk-wrapper) main {
 .ballot-photo-box img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: center 52%;
+    transform: none;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ballot-card:hover .ballot-photo-box img {
+    transform: scale(1.04);
 }
 
 .ballot-photo-placeholder {

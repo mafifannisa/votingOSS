@@ -274,7 +274,11 @@ window.initResultsView = function() {
                                 ${isLeading ? '<span class="badge bg-warning text-dark fs-6 px-3 py-1"><i class="bi bi-trophy-fill me-1"></i> Suara Terbanyak</span>' : ''}
                             </div>
                             <div class="text-center mb-3">
-                                ${cand.foto ? `<img src="${cand.foto}" class="img-fluid rounded mb-3 border" style="max-height: 180px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
+                                ${cand.foto ? `
+                                    <div class="rounded mb-3 border overflow-hidden mx-auto" style="height: 190px; width: 100%; max-width: 300px; background: #f8fafc;">
+                                        <img src="${cand.foto}" alt="${cand.nama_ketua}" style="width: 100%; height: 100%; object-fit: cover; object-position: center 52%;" onerror="this.parentElement.style.display='none'">
+                                    </div>
+                                ` : ''}
                                 <h4 class="fw-bold mb-1">${cand.nama_ketua}</h4>
                                 <h5 class="fw-semibold text-secondary mb-3">& ${cand.nama_wakil}</h5>
                             </div>
