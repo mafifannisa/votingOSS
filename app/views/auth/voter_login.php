@@ -202,32 +202,65 @@ window.initVoterLoginView = function() {
         }
     }
 
+    let availableCameras = null;
+
     // Inisialisasi daftar kamera yang tersedia
     async function initCameras() {
-        if (!window.Html5Qrcode) {
-            return [];
+        if (availableCameras !== null) {
+            return availableCameras;
         }
 
         try {
-            const devices = await Html5Qrcode.getCameras();
-            if (devices && devices.length > 0 && cameraSelect) {
-                cameraSelect.innerHTML = '';
-                devices.forEach((dev, index) => {
-                    const opt = document.createElement('option');
-                    opt.value = dev.id;
-                    opt.textContent = dev.label || `Kamera ${index + 1}`;
-                    cameraSelect.appendChild(opt);
-                });
-
-                if (devices.length > 1 && cameraSelectGroup) {
-                    cameraSelectGroup.style.display = 'block';
+            // Gunakan enumerateDevices terlebih dahulu untuk deteksi perangkat tanpa error/prompt
+            if (navigator.mediaDevices && typeof navigator.mediaDevices.enumerateDevices === 'function') {
+                const devs = await navigator.mediaDevices.enumerateDevices();
+                const videoDevs = devs.filter(d => d.kind === 'videoinput');
+                if (videoDevs.length === 0) {
+                    availableCameras = [];
+                    return [];
                 }
-                return devices;
             }
-            return devices || [];
+
+            if (window.Html5Qrcode && typeof Html5Qrcode.getCameras === 'function') {
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length > 0) {
+                    availableCameras = devices;
+                    if (cameraSelect) {
+                        cameraSelect.innerHTML = '';
+                        devices.forEach((dev, index) => {
+                            const opt = document.createElement('option');
+                            opt.value = dev.id;
+                            opt.textContent = dev.label || `Kamera ${index + 1}`;
+                            cameraSelect.appendChild(opt);
+                        });
+
+                        if (devices.length > 1 && cameraSelectGroup) {
+                            cameraSelectGroup.style.display = 'block';
+                        }
+                    }
+                    return availableCameras;
+                }
+            }
+            availableCameras = [];
+            return [];
         } catch (err) {
             // Tangani secara tenang jika perangkat tidak memiliki webcam fisik yang terpasang
+            availableCameras = [];
             return [];
+        }
+    }
+
+    // Deteksi keberadaan perangkat webcam
+    async function detectCameraAvailability() {
+        try {
+            if (navigator.mediaDevices && typeof navigator.mediaDevices.enumerateDevices === 'function') {
+                const devs = await navigator.mediaDevices.enumerateDevices();
+                return devs.some(d => d.kind === 'videoinput');
+            }
+            const cams = await initCameras();
+            return Array.isArray(cams) && cams.length > 0;
+        } catch (e) {
+            return false;
         }
     }
 
@@ -497,10 +530,31 @@ window.initVoterLoginView = function() {
         stopScanner();
     };
 
-    // Auto focus ke input NISN
-    if (manualInput) {
-        setTimeout(() => manualInput.focus(), 150);
-    }
+    // Tentukan tab default secara cerdas:
+    // Jika ada webcam terdeteksi -> default ke 'Scan Barcode' dan nyalakan kamera
+    // Jika tidak ada webcam -> default tetap di 'Ketik NISN' dan beri fokus ke input
+    detectCameraAvailability().then((hasCamera) => {
+        if (hasCamera) {
+            if (scannerTab && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                const bsTab = bootstrap.Tab.getOrCreateInstance ? bootstrap.Tab.getOrCreateInstance(scannerTab) : new bootstrap.Tab(scannerTab);
+                bsTab.show();
+            } else if (scannerTab) {
+                scannerTab.click();
+            }
+        } else {
+            if (manualInput) {
+                setTimeout(() => {
+                    try { manualInput.focus({ preventScroll: true }); } catch (e) {}
+                }, 100);
+            }
+        }
+    }).catch(() => {
+        if (manualInput) {
+            setTimeout(() => {
+                try { manualInput.focus({ preventScroll: true }); } catch (e) {}
+            }, 100);
+        }
+    });
 
     // Sinkronkan status tombol Fullscreen
     const isFS = !!(document.fullscreenElement || sessionStorage.getItem('evoting_fullscreen') === '1');
